@@ -89,6 +89,7 @@ class GameEngine:
         """Инициализация игрового движка"""
         self.state = GameState()
         self.deck = self.create_deck()
+        self.first_player_id = None  # ID игрока с шестеркой треф
         
     @staticmethod
     def create_deck() -> list[Card]:
@@ -104,23 +105,84 @@ class GameEngine:
         return deck
     
     def deal_cards(self):
-        """Раздача карт игрокам"""
-        # TODO: Реализовать логику раздачи
-        pass
+        """Раздача карт игрокам (по 9 карт каждому)"""
+        import random
+        random.shuffle(self.deck)
+        
+        # Раздаем по одной карте по кругу, пока у всех не будет по 9 карт
+        for i in range(9):
+            for player in self.state.players:
+                if self.deck:
+                    card = self.deck.pop()
+                    player.add_card(card)
+                    
+                    # Проверяем, является ли карта шестеркой треф
+                    if card.suit == 'clubs' and card.rank == '6':
+                        self.first_player_id = player.id
     
     def start_game(self):
         """Начало новой игры"""
-        # TODO: Определить игрока с шестеркой крести
-        # TODO: Установить козырь
-        # TODO: Начать первый кон
-        pass
+        # Раздаем карты
+        self.deal_cards()
+        
+        # Устанавливаем первого игрока (с шестеркой треф)
+        if self.first_player_id:
+            # Находим индекс игрока по ID
+            for i, player in enumerate(self.state.players):
+                if player.id == self.first_player_id:
+                    self.state.current_player_index = i
+                    break
+        else:
+            # Если шестерка треф не найдена, начинаем с первого игрока
+            self.state.current_player_index = 0
+        
+        # Начинаем первый кон
+        self.state.start_new_trick()
+        print(f"Игра началась! Первый ход за игроком {self.state.players[self.state.current_player_index]}")
+    
+    def set_trump_by_player(self, player_id: int, suit: str):
+        """Установка козыря игроком"""
+        if player_id != self.first_player_id:
+            raise ValueError("Только игрок с шестеркой треф может устанавливать козырь")
+        
+        if suit not in ['hearts', 'diamonds', 'clubs', 'spades']:
+            raise ValueError("Недопустимая масть для козыря")
+        
+        self.state.set_trump(suit)
+        print(f"Игрок {player_id} установил козырь: {suit}")
     
     def play_turn(self, player_id: int, card_index: int):
         """Обработка хода игрока"""
-        # TODO: Валидация хода
-        # TODO: Обновление состояния игры
-        # TODO: Проверка завершения кона/игры
-        pass
+        player = self.state.players[player_id - 1]
+        
+        # Проверяем, что ход делает правильный игрок
+        if player_id != self.state.players[self.state.current_player_index].id:
+            raise ValueError("Сейчас не ваш ход!")
+        
+        # Играем карту
+        card = player.play_card(card_index)
+        self.state.record_move(player_id, card)
+        print(f"Игрок {player_id} сыграл: {card}")
+        
+        # Проверяем завершение кона (4 хода)
+        if len(self.state.current_trick) == 4:
+            # Определяем победителя взятки (упрощенная логика)
+            winning_card = max(self.state.current_trick, 
+                              key=lambda x: (x[1].suit == self.state.trump, x[1].value))
+            winning_player_id = winning_card[0]
+            winning_team = self.state.players[winning_player_id - 1].team
+            
+            self.state.complete_trick(winning_team)
+            self.state.current_player_index = winning_player_id - 1
+            print(f"Взятку выиграла команда {winning_team} (игрок {winning_player_id})")
+        else:
+            # Переход к следующему игроку
+            self.state.current_player_index = (self.state.current_player_index + 1) % 4
+        
+        # Проверка завершения игры (9 взяток)
+        if len(self.state.tricks[1]) + len(self.state.tricks[2]) == 9:
+            print("Игра завершена!")
+            # TODO: Подсчет очков и определение победителя
 
 # Пример использования
 if __name__ == "__main__":
