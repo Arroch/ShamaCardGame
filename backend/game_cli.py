@@ -20,9 +20,14 @@ def main():
     
     # Установка козыря игроком с шестеркой треф
     if engine.first_player_id:
-        suits = ['hearts', 'diamonds', 'clubs', 'spades']
+        player = next(p for p in players if p.id == engine.first_player_id)
         print(f"\nИгрок {engine.first_player_id}, у вас шестерка треф - установите козырь")
-        print("Доступные масти:")
+        print("Ваши карты:")
+        for i, card in enumerate(player.hand):
+            print(f"{i}: {card}")
+        
+        print("\nДоступные масти:")
+        suits = ['hearts', 'diamonds', 'clubs', 'spades']
         for i, suit in enumerate(suits, 1):
             print(f"{i}. {suit}")
         
@@ -47,8 +52,15 @@ def main():
         current_player = engine.state.players[engine.state.current_player_index]
         print(f"\nХод игрока {current_player.id} (Команда {current_player.team})")
         
-        # Выводим карты с индексами
-        print("Ваши карты:")
+        # Выводим текущие карты на столе одной строкой
+        if engine.state.current_trick:
+            cards = [str(card) for _, card in engine.state.current_trick]
+            print(f"Карты на столе: {' '.join(cards)}")
+        else:
+            print("Ваш ход первый!")
+        
+        # Выводим карты игрока с индексами
+        print("\nВаши карты:")
         for i, card in enumerate(current_player.hand):
             print(f"{i}: {card}")
         
@@ -64,6 +76,11 @@ def main():
                 # Подсчет финальных очков по правилам Шамы
                 team1_score = engine.state.scores.get(1, 0)
                 team2_score = engine.state.scores.get(2, 0)
+                
+                # Выводим сумму очков по командам
+                print(f"\nСумма очков за взятки:")
+                print(f"Команда 1: {team1_score} очков")
+                print(f"Команда 2: {team2_score} очков")
                 
                 # Определение команды с шестеркой треф
                 six_clubs_team = engine.state.six_clubs_team
