@@ -1,2 +1,41 @@
-# Файл .gitignore для проекта Shama
-# Будет дополнен по мере необходимости
+# Игнорировать виртуальные окружения Python
+venv/
+.venv/
+env/
+
+# Игнорировать файлы редактора/IDE
+.vscode/
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# Игнорировать лог-файлы
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# Игнорировать зависимости
+node_modules/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Игнорировать артефакты сборки
+dist/
+build/
+*.egg-info/
+
+# Игнорировать конфигурационные файлы
+.env
+*.env.local
+
+# Игнорировать системные файлы
+.DS_Store
+Thumbs.db

@@ -1,4 +1,4 @@
-from game_logic import GameEngine
+from game_logic import GameEngine, Player
 
 def main():
     print("Запуск тестового CLI для игры Шама")
