@@ -55,6 +55,8 @@ class GameState:
         self.trump = None  # Текущий козырь
         self.current_trick = []  # Текущий кон (карты на столе)
         self.tricks = {1: [], 2: []}  # Взятки по командам
+        self.scores = {1: 0, 2: 0}  # Очки команд за взятки
+        self.six_clubs_team = None  # Команда с шестеркой треф
         self.current_player_index = 0  # Индекс текущего игрока
         self.move_history = []  # История ходов
         
@@ -166,15 +168,48 @@ class GameEngine:
         
         # Проверяем завершение кона (4 хода)
         if len(self.state.current_trick) == 4:
-            # Определяем победителя взятки (упрощенная логика)
-            winning_card = max(self.state.current_trick, 
-                              key=lambda x: (x[1].suit == self.state.trump, x[1].value))
+            # Определяем победителя взятки по правилам Шамы
+            first_suit = self.state.current_trick[0][1].suit
+            trump = self.state.trump
+            
+            # Функция для определения силы карты
+            def card_power(card):
+                # Шестерка треф - самая сильная
+                if card.suit == 'clubs' and card.rank == '6':
+                    return (4, 0)  # Максимальный приоритет
+                
+                # Валеты (всегда козыри)
+                if card.rank == 'J':
+                    # Порядок валетов: ♣ > ♠ > ♥ > ♦
+                    suit_order = {'clubs': 3, 'spades': 2, 'hearts': 1, 'diamonds': 0}
+                    return (3, suit_order.get(card.suit, 0))
+                
+                # Козырные карты (кроме валетов и шестерки треф)
+                if card.suit == trump:
+                    # Порядок козырных: A > 10 > K > Q > 9 > 8 > 7 > 6
+                    rank_order = {'A': 7, '10': 6, 'K': 5, 'Q': 4, '9': 3, '8': 2, '7': 1, '6': 0}
+                    return (2, rank_order.get(card.rank, 0))
+                
+                # Карты масти первого хода
+                if card.suit == first_suit:
+                    rank_order = {'A': 7, '10': 6, 'K': 5, 'Q': 4, '9': 3, '8': 2, '7': 1, '6': 0}
+                    return (1, rank_order.get(card.rank, 0))
+                
+                # Остальные карты (младше всех)
+                return (0, 0)
+            
+            # Находим карту с максимальной силой
+            winning_card = max(self.state.current_trick, key=lambda x: card_power(x[1]))
             winning_player_id = winning_card[0]
             winning_team = self.state.players[winning_player_id - 1].team
             
+            # Подсчитываем очки за взятку
+            trick_points = sum(card.value for _, card in self.state.current_trick)
+            self.state.scores[winning_team] = self.state.scores.get(winning_team, 0) + trick_points
+            
             self.state.complete_trick(winning_team)
             self.state.current_player_index = winning_player_id - 1
-            print(f"Взятку выиграла команда {winning_team} (игрок {winning_player_id})")
+            print(f"Взятку выиграла команда {winning_team} (игрок {winning_player_id})! Очки: {trick_points}")
         else:
             # Переход к следующему игроку
             self.state.current_player_index = (self.state.current_player_index + 1) % 4

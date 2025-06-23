@@ -56,11 +56,54 @@ def main():
             card_index = int(input("Выберите индекс карты для хода: "))
             engine.play_turn(current_player.id, card_index)
             
-            # Проверка завершения игры
+            # Проверка завершения игры (9 взяток)
             if len(engine.state.tricks[1]) + len(engine.state.tricks[2]) == 9:
                 game_over = True
-                print("Игра завершена!")
-                # TODO: Подсчет очков
+                print("\nИгра завершена!")
+                
+                # Подсчет финальных очков по правилам Шамы
+                team1_score = engine.state.scores.get(1, 0)
+                team2_score = engine.state.scores.get(2, 0)
+                
+                # Определение команды с шестеркой треф
+                six_clubs_team = engine.state.six_clubs_team
+                
+                # Расчет финальных очков
+                final_scores = {1: 0, 2: 0}
+                for team in [1, 2]:
+                    points = team1_score if team == 1 else team2_score
+                    
+                    if team == six_clubs_team:
+                        if points == 0:
+                            final_scores[team] = 12
+                        elif points < 30:
+                            final_scores[team] = 6
+                        elif points < 60:
+                            final_scores[team] = 3
+                        elif points == 60:
+                            final_scores[team] = 2
+                        else:
+                            final_scores[team] = 0
+                    else:
+                        if points == 0:
+                            final_scores[team] = 6
+                        elif points < 30:
+                            final_scores[team] = 3
+                        elif points < 60:
+                            final_scores[team] = 1
+                        else:
+                            final_scores[team] = 0
+                
+                print(f"Команда 1: {final_scores[1]} очков")
+                print(f"Команда 2: {final_scores[2]} очков")
+                
+                # Определение победителя
+                if final_scores[1] > final_scores[2]:
+                    print("Победила команда 1!")
+                elif final_scores[2] > final_scores[1]:
+                    print("Победила команда 2!")
+                else:
+                    print("Ничья!")
         except Exception as e:
             print(f"Ошибка: {e}")
 
