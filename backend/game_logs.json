@@ -1,0 +1,380 @@
+{"time": "2025-06-24 15:37:27", "level": "INFO", "message": "HTTP Request: POST https://api.telegram.org/botYOUR_BOT_TOKEN/getMe "HTTP/1.1 404 Not Found""}
+{"time": "2025-06-24 15:37:27", "level": "ERROR", "message": "Network Retry Loop (Bootstrap Initialize Application): Invalid token. Aborting retry loop."}
+Traceback (most recent call last):
+  File "/Users/romanbreus/Documents/ShamaVibe/shama-game/backend/venv/lib/python3.9/site-packages/telegram/_bot.py", line 844, in initialize
+    await self.get_me()
+  File "/Users/romanbreus/Documents/ShamaVibe/shama-game/backend/venv/lib/python3.9/site-packages/telegram/ext/_extbot.py", line 1980, in get_me
+    return await super().get_me(
+  File "/Users/romanbreus/Documents/ShamaVibe/shama-game/backend/venv/lib/python3.9/site-packages/telegram/_bot.py", line 975, in get_me
+    result = await self._post(
+  File "/Users/romanbreus/Documents/ShamaVibe/shama-game/backend/venv/lib/python3.9/site-packages/telegram/_bot.py", line 697, in _post
+    return await self._do_post(
+  File "/Users/romanbreus/Documents/ShamaVibe/shama-game/backend/venv/lib/python3.9/site-packages/telegram/ext/_extbot.py", line 369, in _do_post
+    return await super()._do_post(
+  File "/Users/romanbreus/Documents/ShamaVibe/shama-game/backend/venv/lib/python3.9/site-packages/telegram/_bot.py", line 726, in _do_post
+    result = await request.post(
+  File "/Users/romanbreus/Documents/ShamaVibe/shama-game/backend/venv/lib/python3.9/site-packages/telegram/request/_baserequest.py", line 197, in post
+    result = await self._request_wrapper(
+  File "/Users/romanbreus/Documents/ShamaVibe/shama-game/backend/venv/lib/python3.9/site-packages/telegram/request/_baserequest.py", line 351, in _request_wrapper
+    raise InvalidToken(message)
+telegram.error.InvalidToken: Not Found
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/Users/romanbreus/Documents/ShamaVibe/shama-game/backend/venv/lib/python3.9/site-packages/telegram/ext/_utils/networkloop.py", line 115, in network_retry_loop
+    if not await do_action():
+  File "/Users/romanbreus/Documents/ShamaVibe/shama-game/backend/venv/lib/python3.9/site-packages/telegram/ext/_utils/networkloop.py", line 93, in do_action
+    return await action_cb()
+  File "/Users/romanbreus/Documents/ShamaVibe/shama-game/backend/venv/lib/python3.9/site-packages/telegram/ext/_application.py", line 486, in initialize
+    await self.bot.initialize()
+  File "/Users/romanbreus/Documents/ShamaVibe/shama-game/backend/venv/lib/python3.9/site-packages/telegram/ext/_extbot.py", line 315, in initialize
+    await super().initialize()
+  File "/Users/romanbreus/Documents/ShamaVibe/shama-game/backend/venv/lib/python3.9/site-packages/telegram/_bot.py", line 846, in initialize
+    raise InvalidToken(f"The token `{self._token}` was rejected by the server.") from exc
+telegram.error.InvalidToken: The token `YOUR_BOT_TOKEN` was rejected by the server.
+{"time": "2025-06-24 15:38:53", "level": "INFO", "message": "HTTP Request: POST https://api.telegram.org/botYOUR_BOT_TOKEN/getMe "HTTP/1.1 404 Not Found""}
+{"time": "2025-06-24 15:38:53", "level": "ERROR", "message": "Network Retry Loop (Bootstrap Initialize Application): Invalid token. Aborting retry loop."}
+Traceback (most recent call last):
+  File "/Users/romanbreus/Documents/ShamaVibe/shama-game/backend/venv/lib/python3.9/site-packages/telegram/_bot.py", line 844, in initialize
+    await self.get_me()
+  File "/Users/romanbreus/Documents/ShamaVibe/shama-game/backend/venv/lib/python3.9/site-packages/telegram/ext/_extbot.py", line 1980, in get_me
+    return await super().get_me(
+  File "/Users/romanbreus/Documents/ShamaVibe/shama-game/backend/venv/lib/python3.9/site-packages/telegram/_bot.py", line 975, in get_me
+    result = await self._post(
+  File "/Users/romanbreus/Documents/ShamaVibe/shama-game/backend/venv/lib/python3.9/site-packages/telegram/_bot.py", line 697, in _post
+    return await self._do_post(
+  File "/Users/romanbreus/Documents/ShamaVibe/shama-game/backend/venv/lib/python3.9/site-packages/telegram/ext/_extbot.py", line 369, in _do_post
+    return await super()._do_post(
+  File "/Users/romanbreus/Documents/ShamaVibe/shama-game/backend/venv/lib/python3.9/site-packages/telegram/_bot.py", line 726, in _do_post
+    result = await request.post(
+  File "/Users/romanbreus/Documents/ShamaVibe/shama-game/backend/venv/lib/python3.9/site-packages/telegram/request/_baserequest.py", line 197, in post
+    result = await self._request_wrapper(
+  File "/Users/romanbreus/Documents/ShamaVibe/shama-game/backend/venv/lib/python3.9/site-packages/telegram/request/_baserequest.py", line 351, in _request_wrapper
+    raise InvalidToken(message)
+telegram.error.InvalidToken: Not Found
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/Users/romanbreus/Documents/ShamaVibe/shama-game/backend/venv/lib/python3.9/site-packages/telegram/ext/_utils/networkloop.py", line 115, in network_retry_loop
+    if not await do_action():
+  File "/Users/romanbreus/Documents/ShamaVibe/shama-game/backend/venv/lib/python3.9/site-packages/telegram/ext/_utils/networkloop.py", line 93, in do_action
+    return await action_cb()
+  File "/Users/romanbreus/Documents/ShamaVibe/shama-game/backend/venv/lib/python3.9/site-packages/telegram/ext/_application.py", line 486, in initialize
+    await self.bot.initialize()
+  File "/Users/romanbreus/Documents/ShamaVibe/shama-game/backend/venv/lib/python3.9/site-packages/telegram/ext/_extbot.py", line 315, in initialize
+    await super().initialize()
+  File "/Users/romanbreus/Documents/ShamaVibe/shama-game/backend/venv/lib/python3.9/site-packages/telegram/_bot.py", line 846, in initialize
+    raise InvalidToken(f"The token `{self._token}` was rejected by the server.") from exc
+telegram.error.InvalidToken: The token `YOUR_BOT_TOKEN` was rejected by the server.
+{"time": "2025-06-24 15:41:17", "level": "INFO", "message": "HTTP Request: POST https://api.telegram.org/botYOUR_BOT_TOKEN/getMe "HTTP/1.1 404 Not Found""}
+{"time": "2025-06-24 15:41:17", "level": "ERROR", "message": "Network Retry Loop (Bootstrap Initialize Application): Invalid token. Aborting retry loop."}
+Traceback (most recent call last):
+  File "/Users/romanbreus/Documents/ShamaVibe/shama-game/backend/venv/lib/python3.9/site-packages/telegram/_bot.py", line 844, in initialize
+    await self.get_me()
+  File "/Users/romanbreus/Documents/ShamaVibe/shama-game/backend/venv/lib/python3.9/site-packages/telegram/ext/_extbot.py", line 1980, in get_me
+    return await super().get_me(
+  File "/Users/romanbreus/Documents/ShamaVibe/shama-game/backend/venv/lib/python3.9/site-packages/telegram/_bot.py", line 975, in get_me
+    result = await self._post(
+  File "/Users/romanbreus/Documents/ShamaVibe/shama-game/backend/venv/lib/python3.9/site-packages/telegram/_bot.py", line 697, in _post
+    return await self._do_post(
+  File "/Users/romanbreus/Documents/ShamaVibe/shama-game/backend/venv/lib/python3.9/site-packages/telegram/ext/_extbot.py", line 369, in _do_post
+    return await super()._do_post(
+  File "/Users/romanbreus/Documents/ShamaVibe/shama-game/backend/venv/lib/python3.9/site-packages/telegram/_bot.py", line 726, in _do_post
+    result = await request.post(
+  File "/Users/romanbreus/Documents/ShamaVibe/shama-game/backend/venv/lib/python3.9/site-packages/telegram/request/_baserequest.py", line 197, in post
+    result = await self._request_wrapper(
+  File "/Users/romanbreus/Documents/ShamaVibe/shama-game/backend/venv/lib/python3.9/site-packages/telegram/request/_baserequest.py", line 351, in _request_wrapper
+    raise InvalidToken(message)
+telegram.error.InvalidToken: Not Found
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/Users/romanbreus/Documents/ShamaVibe/shama-game/backend/venv/lib/python3.9/site-packages/telegram/ext/_utils/networkloop.py", line 115, in network_retry_loop
+    if not await do_action():
+  File "/Users/romanbreus/Documents/ShamaVibe/shama-game/backend/venv/lib/python3.9/site-packages/telegram/ext/_utils/networkloop.py", line 93, in do_action
+    return await action_cb()
+  File "/Users/romanbreus/Documents/ShamaVibe/shama-game/backend/venv/lib/python3.9/site-packages/telegram/ext/_application.py", line 486, in initialize
+    await self.bot.initialize()
+  File "/Users/romanbreus/Documents/ShamaVibe/shama-game/backend/venv/lib/python3.9/site-packages/telegram/ext/_extbot.py", line 315, in initialize
+    await super().initialize()
+  File "/Users/romanbreus/Documents/ShamaVibe/shama-game/backend/venv/lib/python3.9/site-packages/telegram/_bot.py", line 846, in initialize
+    raise InvalidToken(f"The token `{self._token}` was rejected by the server.") from exc
+telegram.error.InvalidToken: The token `YOUR_BOT_TOKEN` was rejected by the server.
+{"time": "2025-06-24 15:42:58", "level": "INFO", "message": "HTTP Request: POST https://api.telegram.org/botBOT_TOKEN/getMe "HTTP/1.1 404 Not Found""}
+{"time": "2025-06-24 15:42:58", "level": "ERROR", "message": "Network Retry Loop (Bootstrap Initialize Application): Invalid token. Aborting retry loop."}
+Traceback (most recent call last):
+  File "/Users/romanbreus/Documents/ShamaVibe/shama-game/backend/venv/lib/python3.9/site-packages/telegram/_bot.py", line 844, in initialize
+    await self.get_me()
+  File "/Users/romanbreus/Documents/ShamaVibe/shama-game/backend/venv/lib/python3.9/site-packages/telegram/ext/_extbot.py", line 1980, in get_me
+    return await super().get_me(
+  File "/Users/romanbreus/Documents/ShamaVibe/shama-game/backend/venv/lib/python3.9/site-packages/telegram/_bot.py", line 975, in get_me
+    result = await self._post(
+  File "/Users/romanbreus/Documents/ShamaVibe/shama-game/backend/venv/lib/python3.9/site-packages/telegram/_bot.py", line 697, in _post
+    return await self._do_post(
+  File "/Users/romanbreus/Documents/ShamaVibe/shama-game/backend/venv/lib/python3.9/site-packages/telegram/ext/_extbot.py", line 369, in _do_post
+    return await super()._do_post(
+  File "/Users/romanbreus/Documents/ShamaVibe/shama-game/backend/venv/lib/python3.9/site-packages/telegram/_bot.py", line 726, in _do_post
+    result = await request.post(
+  File "/Users/romanbreus/Documents/ShamaVibe/shama-game/backend/venv/lib/python3.9/site-packages/telegram/request/_baserequest.py", line 197, in post
+    result = await self._request_wrapper(
+  File "/Users/romanbreus/Documents/ShamaVibe/shama-game/backend/venv/lib/python3.9/site-packages/telegram/request/_baserequest.py", line 351, in _request_wrapper
+    raise InvalidToken(message)
+telegram.error.InvalidToken: Not Found
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/Users/romanbreus/Documents/ShamaVibe/shama-game/backend/venv/lib/python3.9/site-packages/telegram/ext/_utils/networkloop.py", line 115, in network_retry_loop
+    if not await do_action():
+  File "/Users/romanbreus/Documents/ShamaVibe/shama-game/backend/venv/lib/python3.9/site-packages/telegram/ext/_utils/networkloop.py", line 93, in do_action
+    return await action_cb()
+  File "/Users/romanbreus/Documents/ShamaVibe/shama-game/backend/venv/lib/python3.9/site-packages/telegram/ext/_application.py", line 486, in initialize
+    await self.bot.initialize()
+  File "/Users/romanbreus/Documents/ShamaVibe/shama-game/backend/venv/lib/python3.9/site-packages/telegram/ext/_extbot.py", line 315, in initialize
+    await super().initialize()
+  File "/Users/romanbreus/Documents/ShamaVibe/shama-game/backend/venv/lib/python3.9/site-packages/telegram/_bot.py", line 846, in initialize
+    raise InvalidToken(f"The token `{self._token}` was rejected by the server.") from exc
+telegram.error.InvalidToken: The token `BOT_TOKEN` was rejected by the server.
+{"time": "2025-06-24 15:46:14", "level": "INFO", "message": "HTTP Request: POST https://api.telegram.org/bot7604047284:AAEBS6HHuIHavWz222NOUECRo6xExm3QgBE/getMe "HTTP/1.1 200 OK""}
+{"time": "2025-06-24 15:46:14", "level": "INFO", "message": "HTTP Request: POST https://api.telegram.org/bot7604047284:AAEBS6HHuIHavWz222NOUECRo6xExm3QgBE/deleteWebhook "HTTP/1.1 200 OK""}
+{"time": "2025-06-24 15:46:14", "level": "INFO", "message": "Application started"}
+{"time": "2025-06-24 15:46:24", "level": "INFO", "message": "HTTP Request: POST https://api.telegram.org/bot7604047284:AAEBS6HHuIHavWz222NOUECRo6xExm3QgBE/getUpdates "HTTP/1.1 200 OK""}
+{"time": "2025-06-24 15:46:34", "level": "INFO", "message": "HTTP Request: POST https://api.telegram.org/bot7604047284:AAEBS6HHuIHavWz222NOUECRo6xExm3QgBE/getUpdates "HTTP/1.1 200 OK""}
+{"time": "2025-06-24 15:46:40", "level": "INFO", "message": "HTTP Request: POST https://api.telegram.org/bot7604047284:AAEBS6HHuIHavWz222NOUECRo6xExm3QgBE/getUpdates "HTTP/1.1 200 OK""}
+{"time": "2025-06-24 15:46:41", "level": "INFO", "message": "HTTP Request: POST https://api.telegram.org/bot7604047284:AAEBS6HHuIHavWz222NOUECRo6xExm3QgBE/sendMessage "HTTP/1.1 200 OK""}
+{"time": "2025-06-24 15:46:50", "level": "INFO", "message": "HTTP Request: POST https://api.telegram.org/bot7604047284:AAEBS6HHuIHavWz222NOUECRo6xExm3QgBE/getUpdates "HTTP/1.1 200 OK""}
+{"time": "2025-06-24 15:47:00", "level": "INFO", "message": "HTTP Request: POST https://api.telegram.org/bot7604047284:AAEBS6HHuIHavWz222NOUECRo6xExm3QgBE/getUpdates "HTTP/1.1 200 OK""}
+{"time": "2025-06-24 15:47:11", "level": "INFO", "message": "HTTP Request: POST https://api.telegram.org/bot7604047284:AAEBS6HHuIHavWz222NOUECRo6xExm3QgBE/getUpdates "HTTP/1.1 200 OK""}
+{"time": "2025-06-24 15:47:21", "level": "INFO", "message": "HTTP Request: POST https://api.telegram.org/bot7604047284:AAEBS6HHuIHavWz222NOUECRo6xExm3QgBE/getUpdates "HTTP/1.1 200 OK""}
+{"time": "2025-06-24 15:47:31", "level": "INFO", "message": "HTTP Request: POST https://api.telegram.org/bot7604047284:AAEBS6HHuIHavWz222NOUECRo6xExm3QgBE/getUpdates "HTTP/1.1 200 OK""}
+{"time": "2025-06-24 15:47:41", "level": "INFO", "message": "HTTP Request: POST https://api.telegram.org/bot7604047284:AAEBS6HHuIHavWz222NOUECRo6xExm3QgBE/getUpdates "HTTP/1.1 200 OK""}
+{"time": "2025-06-24 15:47:51", "level": "INFO", "message": "HTTP Request: POST https://api.telegram.org/bot7604047284:AAEBS6HHuIHavWz222NOUECRo6xExm3QgBE/getUpdates "HTTP/1.1 200 OK""}
+{"time": "2025-06-24 15:48:01", "level": "INFO", "message": "HTTP Request: POST https://api.telegram.org/bot7604047284:AAEBS6HHuIHavWz222NOUECRo6xExm3QgBE/getUpdates "HTTP/1.1 200 OK""}
+{"time": "2025-06-24 15:48:11", "level": "INFO", "message": "HTTP Request: POST https://api.telegram.org/bot7604047284:AAEBS6HHuIHavWz222NOUECRo6xExm3QgBE/getUpdates "HTTP/1.1 200 OK""}
+{"time": "2025-06-24 15:48:21", "level": "INFO", "message": "HTTP Request: POST https://api.telegram.org/bot7604047284:AAEBS6HHuIHavWz222NOUECRo6xExm3QgBE/getUpdates "HTTP/1.1 200 OK""}
+{"time": "2025-06-24 15:48:31", "level": "INFO", "message": "HTTP Request: POST https://api.telegram.org/bot7604047284:AAEBS6HHuIHavWz222NOUECRo6xExm3QgBE/getUpdates "HTTP/1.1 200 OK""}
+{"time": "2025-06-24 15:48:41", "level": "INFO", "message": "HTTP Request: POST https://api.telegram.org/bot7604047284:AAEBS6HHuIHavWz222NOUECRo6xExm3QgBE/getUpdates "HTTP/1.1 200 OK""}
+{"time": "2025-06-24 15:48:51", "level": "INFO", "message": "HTTP Request: POST https://api.telegram.org/bot7604047284:AAEBS6HHuIHavWz222NOUECRo6xExm3QgBE/getUpdates "HTTP/1.1 200 OK""}
+{"time": "2025-06-24 15:49:01", "level": "INFO", "message": "HTTP Request: POST https://api.telegram.org/bot7604047284:AAEBS6HHuIHavWz222NOUECRo6xExm3QgBE/getUpdates "HTTP/1.1 200 OK""}
+{"time": "2025-06-24 15:49:11", "level": "INFO", "message": "HTTP Request: POST https://api.telegram.org/bot7604047284:AAEBS6HHuIHavWz222NOUECRo6xExm3QgBE/getUpdates "HTTP/1.1 200 OK""}
+{"time": "2025-06-24 15:49:21", "level": "INFO", "message": "HTTP Request: POST https://api.telegram.org/bot7604047284:AAEBS6HHuIHavWz222NOUECRo6xExm3QgBE/getUpdates "HTTP/1.1 200 OK""}
+{"time": "2025-06-24 15:49:31", "level": "INFO", "message": "HTTP Request: POST https://api.telegram.org/bot7604047284:AAEBS6HHuIHavWz222NOUECRo6xExm3QgBE/getUpdates "HTTP/1.1 200 OK""}
+{"time": "2025-06-24 15:49:41", "level": "INFO", "message": "HTTP Request: POST https://api.telegram.org/bot7604047284:AAEBS6HHuIHavWz222NOUECRo6xExm3QgBE/getUpdates "HTTP/1.1 200 OK""}
+{"time": "2025-06-24 15:49:51", "level": "INFO", "message": "HTTP Request: POST https://api.telegram.org/bot7604047284:AAEBS6HHuIHavWz222NOUECRo6xExm3QgBE/getUpdates "HTTP/1.1 200 OK""}
+{"time": "2025-06-24 15:50:02", "level": "INFO", "message": "HTTP Request: POST https://api.telegram.org/bot7604047284:AAEBS6HHuIHavWz222NOUECRo6xExm3QgBE/getUpdates "HTTP/1.1 200 OK""}
+{"time": "2025-06-24 15:50:12", "level": "INFO", "message": "HTTP Request: POST https://api.telegram.org/bot7604047284:AAEBS6HHuIHavWz222NOUECRo6xExm3QgBE/getUpdates "HTTP/1.1 200 OK""}
+{"time": "2025-06-24 15:50:22", "level": "INFO", "message": "HTTP Request: POST https://api.telegram.org/bot7604047284:AAEBS6HHuIHavWz222NOUECRo6xExm3QgBE/getUpdates "HTTP/1.1 200 OK""}
+{"time": "2025-06-24 15:50:32", "level": "INFO", "message": "HTTP Request: POST https://api.telegram.org/bot7604047284:AAEBS6HHuIHavWz222NOUECRo6xExm3QgBE/getUpdates "HTTP/1.1 200 OK""}
+{"time": "2025-06-24 15:50:42", "level": "INFO", "message": "HTTP Request: POST https://api.telegram.org/bot7604047284:AAEBS6HHuIHavWz222NOUECRo6xExm3QgBE/getUpdates "HTTP/1.1 200 OK""}
+{"time": "2025-06-24 15:50:52", "level": "INFO", "message": "HTTP Request: POST https://api.telegram.org/bot7604047284:AAEBS6HHuIHavWz222NOUECRo6xExm3QgBE/getUpdates "HTTP/1.1 200 OK""}
+{"time": "2025-06-24 15:51:02", "level": "INFO", "message": "HTTP Request: POST https://api.telegram.org/bot7604047284:AAEBS6HHuIHavWz222NOUECRo6xExm3QgBE/getUpdates "HTTP/1.1 200 OK""}
+{"time": "2025-06-24 15:51:12", "level": "INFO", "message": "HTTP Request: POST https://api.telegram.org/bot7604047284:AAEBS6HHuIHavWz222NOUECRo6xExm3QgBE/getUpdates "HTTP/1.1 200 OK""}
+{"time": "2025-06-24 15:51:22", "level": "INFO", "message": "HTTP Request: POST https://api.telegram.org/bot7604047284:AAEBS6HHuIHavWz222NOUECRo6xExm3QgBE/getUpdates "HTTP/1.1 200 OK""}
+{"time": "2025-06-24 15:51:32", "level": "INFO", "message": "HTTP Request: POST https://api.telegram.org/bot7604047284:AAEBS6HHuIHavWz222NOUECRo6xExm3QgBE/getUpdates "HTTP/1.1 200 OK""}
+{"time": "2025-06-24 15:51:42", "level": "INFO", "message": "HTTP Request: POST https://api.telegram.org/bot7604047284:AAEBS6HHuIHavWz222NOUECRo6xExm3QgBE/getUpdates "HTTP/1.1 200 OK""}
+{"time": "2025-06-24 15:51:52", "level": "INFO", "message": "HTTP Request: POST https://api.telegram.org/bot7604047284:AAEBS6HHuIHavWz222NOUECRo6xExm3QgBE/getUpdates "HTTP/1.1 200 OK""}
+{"time": "2025-06-24 15:52:02", "level": "INFO", "message": "HTTP Request: POST https://api.telegram.org/bot7604047284:AAEBS6HHuIHavWz222NOUECRo6xExm3QgBE/getUpdates "HTTP/1.1 200 OK""}
+{"time": "2025-06-24 15:52:12", "level": "INFO", "message": "HTTP Request: POST https://api.telegram.org/bot7604047284:AAEBS6HHuIHavWz222NOUECRo6xExm3QgBE/getUpdates "HTTP/1.1 200 OK""}
+{"time": "2025-06-24 15:52:22", "level": "INFO", "message": "HTTP Request: POST https://api.telegram.org/bot7604047284:AAEBS6HHuIHavWz222NOUECRo6xExm3QgBE/getUpdates "HTTP/1.1 200 OK""}
+{"time": "2025-06-24 15:52:33", "level": "INFO", "message": "HTTP Request: POST https://api.telegram.org/bot7604047284:AAEBS6HHuIHavWz222NOUECRo6xExm3QgBE/getUpdates "HTTP/1.1 200 OK""}
+{"time": "2025-06-24 15:52:43", "level": "INFO", "message": "HTTP Request: POST https://api.telegram.org/bot7604047284:AAEBS6HHuIHavWz222NOUECRo6xExm3QgBE/getUpdates "HTTP/1.1 200 OK""}
+{"time": "2025-06-24 15:52:52", "level": "INFO", "message": "HTTP Request: POST https://api.telegram.org/bot7604047284:AAEBS6HHuIHavWz222NOUECRo6xExm3QgBE/getUpdates "HTTP/1.1 200 OK""}
+{"time": "2025-06-24 15:52:52", "level": "INFO", "message": "Application is stopping. This might take a moment."}
+{"time": "2025-06-24 15:52:52", "level": "INFO", "message": "Application.stop() complete"}
+{"time": "2025-06-24 15:53:09", "level": "INFO", "message": "HTTP Request: POST https://api.telegram.org/bot7604047284:AAEBS6HHuIHavWz222NOUECRo6xExm3QgBE/getMe "HTTP/1.1 200 OK""}
+{"time": "2025-06-24 15:53:09", "level": "INFO", "message": "HTTP Request: POST https://api.telegram.org/bot7604047284:AAEBS6HHuIHavWz222NOUECRo6xExm3QgBE/deleteWebhook "HTTP/1.1 200 OK""}
+{"time": "2025-06-24 15:53:09", "level": "INFO", "message": "Application started"}
+{"time": "2025-06-24 15:53:19", "level": "INFO", "message": "HTTP Request: POST https://api.telegram.org/bot7604047284:AAEBS6HHuIHavWz222NOUECRo6xExm3QgBE/getUpdates "HTTP/1.1 200 OK""}
+{"time": "2025-06-24 15:53:29", "level": "INFO", "message": "HTTP Request: POST https://api.telegram.org/bot7604047284:AAEBS6HHuIHavWz222NOUECRo6xExm3QgBE/getUpdates "HTTP/1.1 200 OK""}
+{"time": "2025-06-24 15:53:29", "level": "INFO", "message": "HTTP Request: POST https://api.telegram.org/bot7604047284:AAEBS6HHuIHavWz222NOUECRo6xExm3QgBE/sendMessage "HTTP/1.1 200 OK""}
+{"time": "2025-06-24 15:53:33", "level": "INFO", "message": "HTTP Request: POST https://api.telegram.org/bot7604047284:AAEBS6HHuIHavWz222NOUECRo6xExm3QgBE/getUpdates "HTTP/1.1 200 OK""}
+{"time": "2025-06-24 15:53:33", "level": "INFO", "message": "HTTP Request: POST https://api.telegram.org/bot7604047284:AAEBS6HHuIHavWz222NOUECRo6xExm3QgBE/sendMessage "HTTP/1.1 200 OK""}
+{"time": "2025-06-24 15:53:43", "level": "INFO", "message": "HTTP Request: POST https://api.telegram.org/bot7604047284:AAEBS6HHuIHavWz222NOUECRo6xExm3QgBE/getUpdates "HTTP/1.1 200 OK""}
+{"time": "2025-06-24 15:53:53", "level": "INFO", "message": "HTTP Request: POST https://api.telegram.org/bot7604047284:AAEBS6HHuIHavWz222NOUECRo6xExm3QgBE/getUpdates "HTTP/1.1 200 OK""}
+{"time": "2025-06-24 15:54:03", "level": "INFO", "message": "HTTP Request: POST https://api.telegram.org/bot7604047284:AAEBS6HHuIHavWz222NOUECRo6xExm3QgBE/getUpdates "HTTP/1.1 200 OK""}
+{"time": "2025-06-24 15:54:06", "level": "INFO", "message": "HTTP Request: POST https://api.telegram.org/bot7604047284:AAEBS6HHuIHavWz222NOUECRo6xExm3QgBE/getUpdates "HTTP/1.1 200 OK""}
+{"time": "2025-06-24 15:54:06", "level": "INFO", "message": "HTTP Request: POST https://api.telegram.org/bot7604047284:AAEBS6HHuIHavWz222NOUECRo6xExm3QgBE/sendMessage "HTTP/1.1 200 OK""}
+{"time": "2025-06-24 15:54:12", "level": "INFO", "message": "HTTP Request: POST https://api.telegram.org/bot7604047284:AAEBS6HHuIHavWz222NOUECRo6xExm3QgBE/getUpdates "HTTP/1.1 200 OK""}
+{"time": "2025-06-24 15:54:12", "level": "INFO", "message": "HTTP Request: POST https://api.telegram.org/bot7604047284:AAEBS6HHuIHavWz222NOUECRo6xExm3QgBE/sendMessage "HTTP/1.1 200 OK""}
+{"time": "2025-06-24 15:54:22", "level": "INFO", "message": "HTTP Request: POST https://api.telegram.org/bot7604047284:AAEBS6HHuIHavWz222NOUECRo6xExm3QgBE/getUpdates "HTTP/1.1 200 OK""}
+{"time": "2025-06-24 15:54:32", "level": "INFO", "message": "HTTP Request: POST https://api.telegram.org/bot7604047284:AAEBS6HHuIHavWz222NOUECRo6xExm3QgBE/getUpdates "HTTP/1.1 200 OK""}
+{"time": "2025-06-24 15:54:37", "level": "INFO", "message": "HTTP Request: POST https://api.telegram.org/bot7604047284:AAEBS6HHuIHavWz222NOUECRo6xExm3QgBE/getUpdates "HTTP/1.1 200 OK""}
+{"time": "2025-06-24 15:54:38", "level": "INFO", "message": "HTTP Request: POST https://api.telegram.org/bot7604047284:AAEBS6HHuIHavWz222NOUECRo6xExm3QgBE/sendMessage "HTTP/1.1 200 OK""}
+{"time": "2025-06-24 15:54:47", "level": "INFO", "message": "HTTP Request: POST https://api.telegram.org/bot7604047284:AAEBS6HHuIHavWz222NOUECRo6xExm3QgBE/getUpdates "HTTP/1.1 200 OK""}
+{"time": "2025-06-24 15:54:47", "level": "INFO", "message": "HTTP Request: POST https://api.telegram.org/bot7604047284:AAEBS6HHuIHavWz222NOUECRo6xExm3QgBE/sendMessage "HTTP/1.1 200 OK""}
+{"time": "2025-06-24 15:54:57", "level": "INFO", "message": "HTTP Request: POST https://api.telegram.org/bot7604047284:AAEBS6HHuIHavWz222NOUECRo6xExm3QgBE/getUpdates "HTTP/1.1 200 OK""}
+{"time": "2025-06-24 15:55:02", "level": "INFO", "message": "HTTP Request: POST https://api.telegram.org/bot7604047284:AAEBS6HHuIHavWz222NOUECRo6xExm3QgBE/getUpdates "HTTP/1.1 200 OK""}
+{"time": "2025-06-24 15:55:02", "level": "INFO", "message": "HTTP Request: POST https://api.telegram.org/bot7604047284:AAEBS6HHuIHavWz222NOUECRo6xExm3QgBE/sendMessage "HTTP/1.1 200 OK""}
+{"time": "2025-06-24 15:55:12", "level": "INFO", "message": "HTTP Request: POST https://api.telegram.org/bot7604047284:AAEBS6HHuIHavWz222NOUECRo6xExm3QgBE/getUpdates "HTTP/1.1 200 OK""}
+{"time": "2025-06-24 15:55:22", "level": "INFO", "message": "HTTP Request: POST https://api.telegram.org/bot7604047284:AAEBS6HHuIHavWz222NOUECRo6xExm3QgBE/getUpdates "HTTP/1.1 200 OK""}
+{"time": "2025-06-24 15:55:26", "level": "INFO", "message": "HTTP Request: POST https://api.telegram.org/bot7604047284:AAEBS6HHuIHavWz222NOUECRo6xExm3QgBE/getUpdates "HTTP/1.1 200 OK""}
+{"time": "2025-06-24 15:55:26", "level": "INFO", "message": "HTTP Request: POST https://api.telegram.org/bot7604047284:AAEBS6HHuIHavWz222NOUECRo6xExm3QgBE/sendMessage "HTTP/1.1 200 OK""}
+{"time": "2025-06-24 15:55:36", "level": "INFO", "message": "HTTP Request: POST https://api.telegram.org/bot7604047284:AAEBS6HHuIHavWz222NOUECRo6xExm3QgBE/getUpdates "HTTP/1.1 200 OK""}
+{"time": "2025-06-24 15:55:46", "level": "INFO", "message": "HTTP Request: POST https://api.telegram.org/bot7604047284:AAEBS6HHuIHavWz222NOUECRo6xExm3QgBE/getUpdates "HTTP/1.1 200 OK""}
+{"time": "2025-06-24 15:55:56", "level": "INFO", "message": "HTTP Request: POST https://api.telegram.org/bot7604047284:AAEBS6HHuIHavWz222NOUECRo6xExm3QgBE/getUpdates "HTTP/1.1 200 OK""}
+{"time": "2025-06-24 15:56:06", "level": "INFO", "message": "HTTP Request: POST https://api.telegram.org/bot7604047284:AAEBS6HHuIHavWz222NOUECRo6xExm3QgBE/getUpdates "HTTP/1.1 200 OK""}
+{"time": "2025-06-24 15:56:16", "level": "INFO", "message": "HTTP Request: POST https://api.telegram.org/bot7604047284:AAEBS6HHuIHavWz222NOUECRo6xExm3QgBE/getUpdates "HTTP/1.1 200 OK""}
+{"time": "2025-06-24 15:56:26", "level": "INFO", "message": "HTTP Request: POST https://api.telegram.org/bot7604047284:AAEBS6HHuIHavWz222NOUECRo6xExm3QgBE/getUpdates "HTTP/1.1 200 OK""}
+{"time": "2025-06-24 15:56:36", "level": "INFO", "message": "HTTP Request: POST https://api.telegram.org/bot7604047284:AAEBS6HHuIHavWz222NOUECRo6xExm3QgBE/getUpdates "HTTP/1.1 200 OK""}
+{"time": "2025-06-24 15:56:46", "level": "INFO", "message": "HTTP Request: POST https://api.telegram.org/bot7604047284:AAEBS6HHuIHavWz222NOUECRo6xExm3QgBE/getUpdates "HTTP/1.1 200 OK""}
+{"time": "2025-06-24 15:56:56", "level": "INFO", "message": "HTTP Request: POST https://api.telegram.org/bot7604047284:AAEBS6HHuIHavWz222NOUECRo6xExm3QgBE/getUpdates "HTTP/1.1 200 OK""}
+{"time": "2025-06-24 15:57:06", "level": "INFO", "message": "HTTP Request: POST https://api.telegram.org/bot7604047284:AAEBS6HHuIHavWz222NOUECRo6xExm3QgBE/getUpdates "HTTP/1.1 200 OK""}
+{"time": "2025-06-24 15:57:16", "level": "INFO", "message": "HTTP Request: POST https://api.telegram.org/bot7604047284:AAEBS6HHuIHavWz222NOUECRo6xExm3QgBE/getUpdates "HTTP/1.1 200 OK""}
+{"time": "2025-06-24 15:57:25", "level": "INFO", "message": "HTTP Request: POST https://api.telegram.org/bot7604047284:AAEBS6HHuIHavWz222NOUECRo6xExm3QgBE/getUpdates "HTTP/1.1 200 OK""}
+{"time": "2025-06-24 15:57:25", "level": "INFO", "message": "HTTP Request: POST https://api.telegram.org/bot7604047284:AAEBS6HHuIHavWz222NOUECRo6xExm3QgBE/sendMessage "HTTP/1.1 200 OK""}
+{"time": "2025-06-24 15:57:35", "level": "INFO", "message": "HTTP Request: POST https://api.telegram.org/bot7604047284:AAEBS6HHuIHavWz222NOUECRo6xExm3QgBE/getUpdates "HTTP/1.1 200 OK""}
+{"time": "2025-06-24 15:57:45", "level": "INFO", "message": "HTTP Request: POST https://api.telegram.org/bot7604047284:AAEBS6HHuIHavWz222NOUECRo6xExm3QgBE/getUpdates "HTTP/1.1 200 OK""}
+{"time": "2025-06-24 15:57:55", "level": "INFO", "message": "HTTP Request: POST https://api.telegram.org/bot7604047284:AAEBS6HHuIHavWz222NOUECRo6xExm3QgBE/getUpdates "HTTP/1.1 200 OK""}
+{"time": "2025-06-24 15:58:05", "level": "INFO", "message": "HTTP Request: POST https://api.telegram.org/bot7604047284:AAEBS6HHuIHavWz222NOUECRo6xExm3QgBE/getUpdates "HTTP/1.1 200 OK""}
+{"time": "2025-06-24 15:58:15", "level": "INFO", "message": "HTTP Request: POST https://api.telegram.org/bot7604047284:AAEBS6HHuIHavWz222NOUECRo6xExm3QgBE/getUpdates "HTTP/1.1 200 OK""}
+{"time": "2025-06-24 15:58:25", "level": "INFO", "message": "HTTP Request: POST https://api.telegram.org/bot7604047284:AAEBS6HHuIHavWz222NOUECRo6xExm3QgBE/getUpdates "HTTP/1.1 200 OK""}
+{"time": "2025-06-24 15:58:35", "level": "INFO", "message": "HTTP Request: POST https://api.telegram.org/bot7604047284:AAEBS6HHuIHavWz222NOUECRo6xExm3QgBE/getUpdates "HTTP/1.1 200 OK""}
+{"time": "2025-06-24 15:58:45", "level": "INFO", "message": "HTTP Request: POST https://api.telegram.org/bot7604047284:AAEBS6HHuIHavWz222NOUECRo6xExm3QgBE/getUpdates "HTTP/1.1 200 OK""}
+{"time": "2025-06-24 15:58:55", "level": "INFO", "message": "HTTP Request: POST https://api.telegram.org/bot7604047284:AAEBS6HHuIHavWz222NOUECRo6xExm3QgBE/getUpdates "HTTP/1.1 200 OK""}
+{"time": "2025-06-24 15:58:58", "level": "INFO", "message": "HTTP Request: POST https://api.telegram.org/bot7604047284:AAEBS6HHuIHavWz222NOUECRo6xExm3QgBE/getUpdates "HTTP/1.1 200 OK""}
+{"time": "2025-06-24 15:58:58", "level": "INFO", "message": "HTTP Request: POST https://api.telegram.org/bot7604047284:AAEBS6HHuIHavWz222NOUECRo6xExm3QgBE/sendMessage "HTTP/1.1 200 OK""}
+{"time": "2025-06-24 15:59:08", "level": "INFO", "message": "HTTP Request: POST https://api.telegram.org/bot7604047284:AAEBS6HHuIHavWz222NOUECRo6xExm3QgBE/getUpdates "HTTP/1.1 200 OK""}
+{"time": "2025-06-24 15:59:18", "level": "INFO", "message": "HTTP Request: POST https://api.telegram.org/bot7604047284:AAEBS6HHuIHavWz222NOUECRo6xExm3QgBE/getUpdates "HTTP/1.1 200 OK""}
+{"time": "2025-06-24 15:59:28", "level": "INFO", "message": "HTTP Request: POST https://api.telegram.org/bot7604047284:AAEBS6HHuIHavWz222NOUECRo6xExm3QgBE/getUpdates "HTTP/1.1 200 OK""}
+{"time": "2025-06-24 15:59:38", "level": "INFO", "message": "HTTP Request: POST https://api.telegram.org/bot7604047284:AAEBS6HHuIHavWz222NOUECRo6xExm3QgBE/getUpdates "HTTP/1.1 200 OK""}
+{"time": "2025-06-24 15:59:48", "level": "INFO", "message": "HTTP Request: POST https://api.telegram.org/bot7604047284:AAEBS6HHuIHavWz222NOUECRo6xExm3QgBE/getUpdates "HTTP/1.1 200 OK""}
+{"time": "2025-06-24 15:59:58", "level": "INFO", "message": "HTTP Request: POST https://api.telegram.org/bot7604047284:AAEBS6HHuIHavWz222NOUECRo6xExm3QgBE/getUpdates "HTTP/1.1 200 OK""}
+{"time": "2025-06-24 16:00:08", "level": "INFO", "message": "HTTP Request: POST https://api.telegram.org/bot7604047284:AAEBS6HHuIHavWz222NOUECRo6xExm3QgBE/getUpdates "HTTP/1.1 200 OK""}
+{"time": "2025-06-24 16:00:18", "level": "INFO", "message": "HTTP Request: POST https://api.telegram.org/bot7604047284:AAEBS6HHuIHavWz222NOUECRo6xExm3QgBE/getUpdates "HTTP/1.1 200 OK""}
+{"time": "2025-06-24 16:00:28", "level": "INFO", "message": "HTTP Request: POST https://api.telegram.org/bot7604047284:AAEBS6HHuIHavWz222NOUECRo6xExm3QgBE/getUpdates "HTTP/1.1 200 OK""}
+{"time": "2025-06-24 16:00:38", "level": "INFO", "message": "HTTP Request: POST https://api.telegram.org/bot7604047284:AAEBS6HHuIHavWz222NOUECRo6xExm3QgBE/getUpdates "HTTP/1.1 200 OK""}
+{"time": "2025-06-24 16:00:48", "level": "INFO", "message": "HTTP Request: POST https://api.telegram.org/bot7604047284:AAEBS6HHuIHavWz222NOUECRo6xExm3QgBE/getUpdates "HTTP/1.1 200 OK""}
+{"time": "2025-06-24 16:00:58", "level": "INFO", "message": "HTTP Request: POST https://api.telegram.org/bot7604047284:AAEBS6HHuIHavWz222NOUECRo6xExm3QgBE/getUpdates "HTTP/1.1 200 OK""}
+{"time": "2025-06-24 16:01:08", "level": "INFO", "message": "HTTP Request: POST https://api.telegram.org/bot7604047284:AAEBS6HHuIHavWz222NOUECRo6xExm3QgBE/getUpdates "HTTP/1.1 200 OK""}
+{"time": "2025-06-24 16:01:18", "level": "INFO", "message": "HTTP Request: POST https://api.telegram.org/bot7604047284:AAEBS6HHuIHavWz222NOUECRo6xExm3QgBE/getUpdates "HTTP/1.1 200 OK""}
+{"time": "2025-06-24 16:01:29", "level": "INFO", "message": "HTTP Request: POST https://api.telegram.org/bot7604047284:AAEBS6HHuIHavWz222NOUECRo6xExm3QgBE/getUpdates "HTTP/1.1 200 OK""}
+{"time": "2025-06-24 16:01:39", "level": "INFO", "message": "HTTP Request: POST https://api.telegram.org/bot7604047284:AAEBS6HHuIHavWz222NOUECRo6xExm3QgBE/getUpdates "HTTP/1.1 200 OK""}
+{"time": "2025-06-24 16:01:49", "level": "INFO", "message": "HTTP Request: POST https://api.telegram.org/bot7604047284:AAEBS6HHuIHavWz222NOUECRo6xExm3QgBE/getUpdates "HTTP/1.1 200 OK""}
+{"time": "2025-06-24 16:01:59", "level": "INFO", "message": "HTTP Request: POST https://api.telegram.org/bot7604047284:AAEBS6HHuIHavWz222NOUECRo6xExm3QgBE/getUpdates "HTTP/1.1 200 OK""}
+{"time": "2025-06-24 16:02:05", "level": "INFO", "message": "HTTP Request: POST https://api.telegram.org/bot7604047284:AAEBS6HHuIHavWz222NOUECRo6xExm3QgBE/getUpdates "HTTP/1.1 200 OK""}
+{"time": "2025-06-24 16:02:05", "level": "INFO", "message": "HTTP Request: POST https://api.telegram.org/bot7604047284:AAEBS6HHuIHavWz222NOUECRo6xExm3QgBE/sendMessage "HTTP/1.1 200 OK""}
+{"time": "2025-06-24 16:02:15", "level": "INFO", "message": "HTTP Request: POST https://api.telegram.org/bot7604047284:AAEBS6HHuIHavWz222NOUECRo6xExm3QgBE/getUpdates "HTTP/1.1 200 OK""}
+{"time": "2025-06-24 16:02:25", "level": "INFO", "message": "HTTP Request: POST https://api.telegram.org/bot7604047284:AAEBS6HHuIHavWz222NOUECRo6xExm3QgBE/getUpdates "HTTP/1.1 200 OK""}
+{"time": "2025-06-24 16:02:35", "level": "INFO", "message": "HTTP Request: POST https://api.telegram.org/bot7604047284:AAEBS6HHuIHavWz222NOUECRo6xExm3QgBE/getUpdates "HTTP/1.1 200 OK""}
+{"time": "2025-06-24 16:02:37", "level": "INFO", "message": "HTTP Request: POST https://api.telegram.org/bot7604047284:AAEBS6HHuIHavWz222NOUECRo6xExm3QgBE/getUpdates "HTTP/1.1 200 OK""}
+{"time": "2025-06-24 16:02:37", "level": "INFO", "message": "HTTP Request: POST https://api.telegram.org/bot7604047284:AAEBS6HHuIHavWz222NOUECRo6xExm3QgBE/sendMessage "HTTP/1.1 200 OK""}
+{"time": "2025-06-24 16:02:47", "level": "INFO", "message": "HTTP Request: POST https://api.telegram.org/bot7604047284:AAEBS6HHuIHavWz222NOUECRo6xExm3QgBE/getUpdates "HTTP/1.1 200 OK""}
+{"time": "2025-06-24 16:02:57", "level": "INFO", "message": "HTTP Request: POST https://api.telegram.org/bot7604047284:AAEBS6HHuIHavWz222NOUECRo6xExm3QgBE/getUpdates "HTTP/1.1 200 OK""}
+{"time": "2025-06-24 16:03:07", "level": "INFO", "message": "HTTP Request: POST https://api.telegram.org/bot7604047284:AAEBS6HHuIHavWz222NOUECRo6xExm3QgBE/getUpdates "HTTP/1.1 200 OK""}
+{"time": "2025-06-24 16:03:17", "level": "INFO", "message": "HTTP Request: POST https://api.telegram.org/bot7604047284:AAEBS6HHuIHavWz222NOUECRo6xExm3QgBE/getUpdates "HTTP/1.1 200 OK""}
+{"time": "2025-06-24 16:03:27", "level": "INFO", "message": "HTTP Request: POST https://api.telegram.org/bot7604047284:AAEBS6HHuIHavWz222NOUECRo6xExm3QgBE/getUpdates "HTTP/1.1 200 OK""}
+{"time": "2025-06-24 16:03:37", "level": "INFO", "message": "HTTP Request: POST https://api.telegram.org/bot7604047284:AAEBS6HHuIHavWz222NOUECRo6xExm3QgBE/getUpdates "HTTP/1.1 200 OK""}
+{"time": "2025-06-24 16:03:47", "level": "INFO", "message": "HTTP Request: POST https://api.telegram.org/bot7604047284:AAEBS6HHuIHavWz222NOUECRo6xExm3QgBE/getUpdates "HTTP/1.1 200 OK""}
+{"time": "2025-06-24 16:03:57", "level": "INFO", "message": "HTTP Request: POST https://api.telegram.org/bot7604047284:AAEBS6HHuIHavWz222NOUECRo6xExm3QgBE/getUpdates "HTTP/1.1 200 OK""}
+{"time": "2025-06-24 16:04:07", "level": "INFO", "message": "HTTP Request: POST https://api.telegram.org/bot7604047284:AAEBS6HHuIHavWz222NOUECRo6xExm3QgBE/getUpdates "HTTP/1.1 200 OK""}
+{"time": "2025-06-24 16:04:17", "level": "INFO", "message": "HTTP Request: POST https://api.telegram.org/bot7604047284:AAEBS6HHuIHavWz222NOUECRo6xExm3QgBE/getUpdates "HTTP/1.1 200 OK""}
+{"time": "2025-06-24 16:04:28", "level": "INFO", "message": "HTTP Request: POST https://api.telegram.org/bot7604047284:AAEBS6HHuIHavWz222NOUECRo6xExm3QgBE/getUpdates "HTTP/1.1 200 OK""}
+{"time": "2025-06-24 16:04:38", "level": "INFO", "message": "HTTP Request: POST https://api.telegram.org/bot7604047284:AAEBS6HHuIHavWz222NOUECRo6xExm3QgBE/getUpdates "HTTP/1.1 200 OK""}
+{"time": "2025-06-24 16:04:48", "level": "INFO", "message": "HTTP Request: POST https://api.telegram.org/bot7604047284:AAEBS6HHuIHavWz222NOUECRo6xExm3QgBE/getUpdates "HTTP/1.1 200 OK""}
+{"time": "2025-06-24 16:04:58", "level": "INFO", "message": "HTTP Request: POST https://api.telegram.org/bot7604047284:AAEBS6HHuIHavWz222NOUECRo6xExm3QgBE/getUpdates "HTTP/1.1 200 OK""}
+{"time": "2025-06-24 16:05:08", "level": "INFO", "message": "HTTP Request: POST https://api.telegram.org/bot7604047284:AAEBS6HHuIHavWz222NOUECRo6xExm3QgBE/getUpdates "HTTP/1.1 200 OK""}
+{"time": "2025-06-24 16:05:18", "level": "INFO", "message": "HTTP Request: POST https://api.telegram.org/bot7604047284:AAEBS6HHuIHavWz222NOUECRo6xExm3QgBE/getUpdates "HTTP/1.1 200 OK""}
+{"time": "2025-06-24 16:05:28", "level": "INFO", "message": "HTTP Request: POST https://api.telegram.org/bot7604047284:AAEBS6HHuIHavWz222NOUECRo6xExm3QgBE/getUpdates "HTTP/1.1 200 OK""}
+{"time": "2025-06-24 16:05:38", "level": "INFO", "message": "HTTP Request: POST https://api.telegram.org/bot7604047284:AAEBS6HHuIHavWz222NOUECRo6xExm3QgBE/getUpdates "HTTP/1.1 200 OK""}
+{"time": "2025-06-24 16:05:48", "level": "INFO", "message": "HTTP Request: POST https://api.telegram.org/bot7604047284:AAEBS6HHuIHavWz222NOUECRo6xExm3QgBE/getUpdates "HTTP/1.1 200 OK""}
+{"time": "2025-06-24 16:05:58", "level": "INFO", "message": "HTTP Request: POST https://api.telegram.org/bot7604047284:AAEBS6HHuIHavWz222NOUECRo6xExm3QgBE/getUpdates "HTTP/1.1 200 OK""}
+{"time": "2025-06-24 16:06:08", "level": "INFO", "message": "HTTP Request: POST https://api.telegram.org/bot7604047284:AAEBS6HHuIHavWz222NOUECRo6xExm3QgBE/getUpdates "HTTP/1.1 200 OK""}
+{"time": "2025-06-24 16:06:18", "level": "INFO", "message": "HTTP Request: POST https://api.telegram.org/bot7604047284:AAEBS6HHuIHavWz222NOUECRo6xExm3QgBE/getUpdates "HTTP/1.1 200 OK""}
+{"time": "2025-06-24 16:06:29", "level": "INFO", "message": "HTTP Request: POST https://api.telegram.org/bot7604047284:AAEBS6HHuIHavWz222NOUECRo6xExm3QgBE/getUpdates "HTTP/1.1 200 OK""}
+{"time": "2025-06-24 16:06:39", "level": "INFO", "message": "HTTP Request: POST https://api.telegram.org/bot7604047284:AAEBS6HHuIHavWz222NOUECRo6xExm3QgBE/getUpdates "HTTP/1.1 200 OK""}
+{"time": "2025-06-24 16:06:49", "level": "INFO", "message": "HTTP Request: POST https://api.telegram.org/bot7604047284:AAEBS6HHuIHavWz222NOUECRo6xExm3QgBE/getUpdates "HTTP/1.1 200 OK""}
+{"time": "2025-06-24 16:06:59", "level": "INFO", "message": "HTTP Request: POST https://api.telegram.org/bot7604047284:AAEBS6HHuIHavWz222NOUECRo6xExm3QgBE/getUpdates "HTTP/1.1 200 OK""}
+{"time": "2025-06-24 16:07:09", "level": "INFO", "message": "HTTP Request: POST https://api.telegram.org/bot7604047284:AAEBS6HHuIHavWz222NOUECRo6xExm3QgBE/getUpdates "HTTP/1.1 200 OK""}
+{"time": "2025-06-24 16:07:19", "level": "INFO", "message": "HTTP Request: POST https://api.telegram.org/bot7604047284:AAEBS6HHuIHavWz222NOUECRo6xExm3QgBE/getUpdates "HTTP/1.1 200 OK""}
+{"time": "2025-06-24 16:07:29", "level": "INFO", "message": "HTTP Request: POST https://api.telegram.org/bot7604047284:AAEBS6HHuIHavWz222NOUECRo6xExm3QgBE/getUpdates "HTTP/1.1 200 OK""}
+{"time": "2025-06-24 16:07:39", "level": "INFO", "message": "HTTP Request: POST https://api.telegram.org/bot7604047284:AAEBS6HHuIHavWz222NOUECRo6xExm3QgBE/getUpdates "HTTP/1.1 200 OK""}
+{"time": "2025-06-24 16:07:49", "level": "INFO", "message": "HTTP Request: POST https://api.telegram.org/bot7604047284:AAEBS6HHuIHavWz222NOUECRo6xExm3QgBE/getUpdates "HTTP/1.1 200 OK""}
+{"time": "2025-06-24 16:07:59", "level": "INFO", "message": "HTTP Request: POST https://api.telegram.org/bot7604047284:AAEBS6HHuIHavWz222NOUECRo6xExm3QgBE/getUpdates "HTTP/1.1 200 OK""}
+{"time": "2025-06-24 16:08:09", "level": "INFO", "message": "HTTP Request: POST https://api.telegram.org/bot7604047284:AAEBS6HHuIHavWz222NOUECRo6xExm3QgBE/getUpdates "HTTP/1.1 200 OK""}
+{"time": "2025-06-24 16:08:19", "level": "INFO", "message": "HTTP Request: POST https://api.telegram.org/bot7604047284:AAEBS6HHuIHavWz222NOUECRo6xExm3QgBE/getUpdates "HTTP/1.1 200 OK""}
+{"time": "2025-06-24 16:08:29", "level": "INFO", "message": "HTTP Request: POST https://api.telegram.org/bot7604047284:AAEBS6HHuIHavWz222NOUECRo6xExm3QgBE/getUpdates "HTTP/1.1 200 OK""}
+{"time": "2025-06-24 16:08:39", "level": "INFO", "message": "HTTP Request: POST https://api.telegram.org/bot7604047284:AAEBS6HHuIHavWz222NOUECRo6xExm3QgBE/getUpdates "HTTP/1.1 200 OK""}
+{"time": "2025-06-24 16:08:50", "level": "INFO", "message": "HTTP Request: POST https://api.telegram.org/bot7604047284:AAEBS6HHuIHavWz222NOUECRo6xExm3QgBE/getUpdates "HTTP/1.1 200 OK""}
+{"time": "2025-06-24 16:09:00", "level": "INFO", "message": "HTTP Request: POST https://api.telegram.org/bot7604047284:AAEBS6HHuIHavWz222NOUECRo6xExm3QgBE/getUpdates "HTTP/1.1 200 OK""}
+{"time": "2025-06-24 16:09:10", "level": "INFO", "message": "HTTP Request: POST https://api.telegram.org/bot7604047284:AAEBS6HHuIHavWz222NOUECRo6xExm3QgBE/getUpdates "HTTP/1.1 200 OK""}
+{"time": "2025-06-24 16:09:20", "level": "INFO", "message": "HTTP Request: POST https://api.telegram.org/bot7604047284:AAEBS6HHuIHavWz222NOUECRo6xExm3QgBE/getUpdates "HTTP/1.1 200 OK""}
+{"time": "2025-06-24 16:09:30", "level": "INFO", "message": "HTTP Request: POST https://api.telegram.org/bot7604047284:AAEBS6HHuIHavWz222NOUECRo6xExm3QgBE/getUpdates "HTTP/1.1 200 OK""}
+{"time": "2025-06-24 16:09:40", "level": "INFO", "message": "HTTP Request: POST https://api.telegram.org/bot7604047284:AAEBS6HHuIHavWz222NOUECRo6xExm3QgBE/getUpdates "HTTP/1.1 200 OK""}
+{"time": "2025-06-24 16:09:50", "level": "INFO", "message": "HTTP Request: POST https://api.telegram.org/bot7604047284:AAEBS6HHuIHavWz222NOUECRo6xExm3QgBE/getUpdates "HTTP/1.1 200 OK""}
+{"time": "2025-06-24 16:10:00", "level": "INFO", "message": "HTTP Request: POST https://api.telegram.org/bot7604047284:AAEBS6HHuIHavWz222NOUECRo6xExm3QgBE/getUpdates "HTTP/1.1 200 OK""}
+{"time": "2025-06-24 16:10:10", "level": "INFO", "message": "HTTP Request: POST https://api.telegram.org/bot7604047284:AAEBS6HHuIHavWz222NOUECRo6xExm3QgBE/getUpdates "HTTP/1.1 200 OK""}
+{"time": "2025-06-24 16:10:20", "level": "INFO", "message": "HTTP Request: POST https://api.telegram.org/bot7604047284:AAEBS6HHuIHavWz222NOUECRo6xExm3QgBE/getUpdates "HTTP/1.1 200 OK""}
+{"time": "2025-06-24 16:10:31", "level": "INFO", "message": "HTTP Request: POST https://api.telegram.org/bot7604047284:AAEBS6HHuIHavWz222NOUECRo6xExm3QgBE/getUpdates "HTTP/1.1 200 OK""}
+{"time": "2025-06-24 16:10:41", "level": "INFO", "message": "HTTP Request: POST https://api.telegram.org/bot7604047284:AAEBS6HHuIHavWz222NOUECRo6xExm3QgBE/getUpdates "HTTP/1.1 200 OK""}
+{"time": "2025-06-24 16:10:51", "level": "INFO", "message": "HTTP Request: POST https://api.telegram.org/bot7604047284:AAEBS6HHuIHavWz222NOUECRo6xExm3QgBE/getUpdates "HTTP/1.1 200 OK""}
+{"time": "2025-06-24 16:11:01", "level": "INFO", "message": "HTTP Request: POST https://api.telegram.org/bot7604047284:AAEBS6HHuIHavWz222NOUECRo6xExm3QgBE/getUpdates "HTTP/1.1 200 OK""}
+{"time": "2025-06-24 16:11:11", "level": "INFO", "message": "HTTP Request: POST https://api.telegram.org/bot7604047284:AAEBS6HHuIHavWz222NOUECRo6xExm3QgBE/getUpdates "HTTP/1.1 200 OK""}
+{"time": "2025-06-24 16:11:21", "level": "INFO", "message": "HTTP Request: POST https://api.telegram.org/bot7604047284:AAEBS6HHuIHavWz222NOUECRo6xExm3QgBE/getUpdates "HTTP/1.1 200 OK""}
+{"time": "2025-06-24 16:11:31", "level": "INFO", "message": "HTTP Request: POST https://api.telegram.org/bot7604047284:AAEBS6HHuIHavWz222NOUECRo6xExm3QgBE/getUpdates "HTTP/1.1 200 OK""}
+{"time": "2025-06-24 16:11:41", "level": "INFO", "message": "HTTP Request: POST https://api.telegram.org/bot7604047284:AAEBS6HHuIHavWz222NOUECRo6xExm3QgBE/getUpdates "HTTP/1.1 200 OK""}
+{"time": "2025-06-24 16:11:51", "level": "INFO", "message": "HTTP Request: POST https://api.telegram.org/bot7604047284:AAEBS6HHuIHavWz222NOUECRo6xExm3QgBE/getUpdates "HTTP/1.1 200 OK""}
+{"time": "2025-06-24 16:12:01", "level": "INFO", "message": "HTTP Request: POST https://api.telegram.org/bot7604047284:AAEBS6HHuIHavWz222NOUECRo6xExm3QgBE/getUpdates "HTTP/1.1 200 OK""}
+{"time": "2025-06-24 16:12:11", "level": "INFO", "message": "HTTP Request: POST https://api.telegram.org/bot7604047284:AAEBS6HHuIHavWz222NOUECRo6xExm3QgBE/getUpdates "HTTP/1.1 200 OK""}
+{"time": "2025-06-24 16:12:21", "level": "INFO", "message": "HTTP Request: POST https://api.telegram.org/bot7604047284:AAEBS6HHuIHavWz222NOUECRo6xExm3QgBE/getUpdates "HTTP/1.1 200 OK""}
+{"time": "2025-06-24 16:12:31", "level": "INFO", "message": "HTTP Request: POST https://api.telegram.org/bot7604047284:AAEBS6HHuIHavWz222NOUECRo6xExm3QgBE/getUpdates "HTTP/1.1 200 OK""}
+{"time": "2025-06-24 16:12:42", "level": "INFO", "message": "HTTP Request: POST https://api.telegram.org/bot7604047284:AAEBS6HHuIHavWz222NOUECRo6xExm3QgBE/getUpdates "HTTP/1.1 200 OK""}
+{"time": "2025-06-24 16:12:52", "level": "INFO", "message": "HTTP Request: POST https://api.telegram.org/bot7604047284:AAEBS6HHuIHavWz222NOUECRo6xExm3QgBE/getUpdates "HTTP/1.1 200 OK""}
+{"time": "2025-06-24 16:13:02", "level": "INFO", "message": "HTTP Request: POST https://api.telegram.org/bot7604047284:AAEBS6HHuIHavWz222NOUECRo6xExm3QgBE/getUpdates "HTTP/1.1 200 OK""}
+{"time": "2025-06-24 16:13:12", "level": "INFO", "message": "HTTP Request: POST https://api.telegram.org/bot7604047284:AAEBS6HHuIHavWz222NOUECRo6xExm3QgBE/getUpdates "HTTP/1.1 200 OK""}
+{"time": "2025-06-24 16:13:22", "level": "INFO", "message": "HTTP Request: POST https://api.telegram.org/bot7604047284:AAEBS6HHuIHavWz222NOUECRo6xExm3QgBE/getUpdates "HTTP/1.1 200 OK""}
+{"time": "2025-06-24 16:13:32", "level": "INFO", "message": "HTTP Request: POST https://api.telegram.org/bot7604047284:AAEBS6HHuIHavWz222NOUECRo6xExm3QgBE/getUpdates "HTTP/1.1 200 OK""}
+{"time": "2025-06-24 16:21:24", "level": "INFO", "message": "HTTP Request: POST https://api.telegram.org/bot7604047284:AAEBS6HHuIHavWz222NOUECRo6xExm3QgBE/getUpdates "HTTP/1.1 200 OK""}
+{"time": "2025-06-24 16:21:24", "level": "INFO", "message": "HTTP Request: POST https://api.telegram.org/bot7604047284:AAEBS6HHuIHavWz222NOUECRo6xExm3QgBE/sendMessage "HTTP/1.1 200 OK""}
+{"time": "2025-06-24 16:21:24", "level": "INFO", "message": "HTTP Request: POST https://api.telegram.org/bot7604047284:AAEBS6HHuIHavWz222NOUECRo6xExm3QgBE/sendMessage "HTTP/1.1 200 OK""}
+{"time": "2025-06-24 16:21:34", "level": "INFO", "message": "HTTP Request: POST https://api.telegram.org/bot7604047284:AAEBS6HHuIHavWz222NOUECRo6xExm3QgBE/getUpdates "HTTP/1.1 200 OK""}
+{"time": "2025-06-24 16:21:44", "level": "INFO", "message": "HTTP Request: POST https://api.telegram.org/bot7604047284:AAEBS6HHuIHavWz222NOUECRo6xExm3QgBE/getUpdates "HTTP/1.1 200 OK""}
+{"time": "2025-06-24 16:21:52", "level": "INFO", "message": "HTTP Request: POST https://api.telegram.org/bot7604047284:AAEBS6HHuIHavWz222NOUECRo6xExm3QgBE/getUpdates "HTTP/1.1 200 OK""}
+{"time": "2025-06-24 16:21:52", "level": "INFO", "message": "Application is stopping. This might take a moment."}
+{"time": "2025-06-24 16:21:52", "level": "INFO", "message": "Application.stop() complete"}
+{"time": "2025-06-26 21:21:32", "level": "INFO", "message": "HTTP Request: POST https://api.telegram.org/bot7604047284:AAEBS6HHuIHavWz222NOUECRo6xExm3QgBE/getMe "HTTP/1.1 200 OK""}
+{"time": "2025-06-26 21:21:32", "level": "INFO", "message": "HTTP Request: POST https://api.telegram.org/bot7604047284:AAEBS6HHuIHavWz222NOUECRo6xExm3QgBE/deleteWebhook "HTTP/1.1 200 OK""}
+{"time": "2025-06-26 21:21:32", "level": "INFO", "message": "Application started"}
+{"time": "2025-06-26 21:21:42", "level": "INFO", "message": "HTTP Request: POST https://api.telegram.org/bot7604047284:AAEBS6HHuIHavWz222NOUECRo6xExm3QgBE/getUpdates "HTTP/1.1 200 OK""}
+{"time": "2025-06-26 21:21:49", "level": "INFO", "message": "HTTP Request: POST https://api.telegram.org/bot7604047284:AAEBS6HHuIHavWz222NOUECRo6xExm3QgBE/getUpdates "HTTP/1.1 200 OK""}
+{"time": "2025-06-26 21:21:49", "level": "INFO", "message": "HTTP Request: POST https://api.telegram.org/bot7604047284:AAEBS6HHuIHavWz222NOUECRo6xExm3QgBE/sendMessage "HTTP/1.1 200 OK""}
+{"time": "2025-06-26 21:21:59", "level": "INFO", "message": "HTTP Request: POST https://api.telegram.org/bot7604047284:AAEBS6HHuIHavWz222NOUECRo6xExm3QgBE/getUpdates "HTTP/1.1 200 OK""}
+{"time": "2025-06-26 21:22:09", "level": "INFO", "message": "HTTP Request: POST https://api.telegram.org/bot7604047284:AAEBS6HHuIHavWz222NOUECRo6xExm3QgBE/getUpdates "HTTP/1.1 200 OK""}
+{"time": "2025-06-26 21:22:09", "level": "INFO", "message": "HTTP Request: POST https://api.telegram.org/bot7604047284:AAEBS6HHuIHavWz222NOUECRo6xExm3QgBE/getUpdates "HTTP/1.1 200 OK""}
+{"time": "2025-06-26 21:22:09", "level": "INFO", "message": "HTTP Request: POST https://api.telegram.org/bot7604047284:AAEBS6HHuIHavWz222NOUECRo6xExm3QgBE/sendMessage "HTTP/1.1 200 OK""}
+{"time": "2025-06-26 21:22:15", "level": "INFO", "message": "HTTP Request: POST https://api.telegram.org/bot7604047284:AAEBS6HHuIHavWz222NOUECRo6xExm3QgBE/getUpdates "HTTP/1.1 200 OK""}
+{"time": "2025-06-26 21:22:16", "level": "INFO", "message": "HTTP Request: POST https://api.telegram.org/bot7604047284:AAEBS6HHuIHavWz222NOUECRo6xExm3QgBE/answerCallbackQuery "HTTP/1.1 200 OK""}
+{"time": "2025-06-26 21:22:16", "level": "INFO", "message": "HTTP Request: POST https://api.telegram.org/bot7604047284:AAEBS6HHuIHavWz222NOUECRo6xExm3QgBE/editMessageText "HTTP/1.1 200 OK""}
+{"time": "2025-06-26 21:22:25", "level": "INFO", "message": "HTTP Request: POST https://api.telegram.org/bot7604047284:AAEBS6HHuIHavWz222NOUECRo6xExm3QgBE/getUpdates "HTTP/1.1 200 OK""}
+{"time": "2025-06-26 21:22:35", "level": "INFO", "message": "HTTP Request: POST https://api.telegram.org/bot7604047284:AAEBS6HHuIHavWz222NOUECRo6xExm3QgBE/getUpdates "HTTP/1.1 200 OK""}
+{"time": "2025-06-26 21:22:46", "level": "INFO", "message": "HTTP Request: POST https://api.telegram.org/bot7604047284:AAEBS6HHuIHavWz222NOUECRo6xExm3QgBE/getUpdates "HTTP/1.1 200 OK""}
+{"time": "2025-06-26 21:22:56", "level": "INFO", "message": "HTTP Request: POST https://api.telegram.org/bot7604047284:AAEBS6HHuIHavWz222NOUECRo6xExm3QgBE/getUpdates "HTTP/1.1 200 OK""}
+{"time": "2025-06-26 21:23:06", "level": "INFO", "message": "HTTP Request: POST https://api.telegram.org/bot7604047284:AAEBS6HHuIHavWz222NOUECRo6xExm3QgBE/getUpdates "HTTP/1.1 200 OK""}
+{"time": "2025-06-26 21:23:16", "level": "INFO", "message": "HTTP Request: POST https://api.telegram.org/bot7604047284:AAEBS6HHuIHavWz222NOUECRo6xExm3QgBE/getUpdates "HTTP/1.1 200 OK""}
+{"time": "2025-06-26 21:23:26", "level": "INFO", "message": "HTTP Request: POST https://api.telegram.org/bot7604047284:AAEBS6HHuIHavWz222NOUECRo6xExm3QgBE/getUpdates "HTTP/1.1 200 OK""}
+{"time": "2025-06-26 21:23:36", "level": "INFO", "message": "HTTP Request: POST https://api.telegram.org/bot7604047284:AAEBS6HHuIHavWz222NOUECRo6xExm3QgBE/getUpdates "HTTP/1.1 200 OK""}
+{"time": "2025-06-26 21:23:46", "level": "INFO", "message": "HTTP Request: POST https://api.telegram.org/bot7604047284:AAEBS6HHuIHavWz222NOUECRo6xExm3QgBE/getUpdates "HTTP/1.1 200 OK""}
+{"time": "2025-06-26 21:23:56", "level": "INFO", "message": "HTTP Request: POST https://api.telegram.org/bot7604047284:AAEBS6HHuIHavWz222NOUECRo6xExm3QgBE/getUpdates "HTTP/1.1 200 OK""}
+{"time": "2025-06-26 21:24:06", "level": "INFO", "message": "HTTP Request: POST https://api.telegram.org/bot7604047284:AAEBS6HHuIHavWz222NOUECRo6xExm3QgBE/getUpdates "HTTP/1.1 200 OK""}
+{"time": "2025-06-26 21:24:16", "level": "INFO", "message": "HTTP Request: POST https://api.telegram.org/bot7604047284:AAEBS6HHuIHavWz222NOUECRo6xExm3QgBE/getUpdates "HTTP/1.1 200 OK""}
+{"time": "2025-06-26 21:24:21", "level": "INFO", "message": "HTTP Request: POST https://api.telegram.org/bot7604047284:AAEBS6HHuIHavWz222NOUECRo6xExm3QgBE/getUpdates "HTTP/1.1 200 OK""}
+{"time": "2025-06-26 21:24:21", "level": "INFO", "message": "Application is stopping. This might take a moment."}
+{"time": "2025-06-26 21:24:21", "level": "INFO", "message": "Application.stop() complete"}
+{"time": "2025-06-26 21:30:55", "level": "DEBUG", "message": "start: user=143274204, args=[], private_chat_id=143274204"}
+{"time": "2025-06-26 21:31:26", "level": "DEBUG", "message": "start: user=6925421082, args=['1750962655_143274204'], private_chat_id=6925421082"}
+{"time": "2025-06-26 21:31:56", "level": "DEBUG", "message": "choose_team: query.data=team_2_1750962655_143274204, user=6925421082"}
+{"time": "2025-06-26 21:34:27", "level": "DEBUG", "message": "start: user=143274204, args=[], private_chat_id=143274204"}
+{"time": "2025-06-26 21:34:39", "level": "DEBUG", "message": "start: user=6925421082, args=['1750962867143274204'], private_chat_id=6925421082"}
+{"time": "2025-06-26 21:34:43", "level": "DEBUG", "message": "choose_team: query.data=team_2_1750962867143274204, user=6925421082"}
+{"time": "2025-06-26 21:37:31", "level": "DEBUG", "message": "start: user=6365907024, args=['1750962867143274204'], private_chat_id=6365907024"}
+{"time": "2025-06-26 21:37:35", "level": "DEBUG", "message": "choose_team: query.data=team_1_1750962867143274204, user=6365907024"}
+{"time": "2025-06-26 21:37:44", "level": "DEBUG", "message": "start: user=447391757, args=['1750962867143274204'], private_chat_id=447391757"}
+{"time": "2025-06-26 21:38:16", "level": "DEBUG", "message": "start_game: user=6925421082, private_chat_id=6925421082"}
+{"time": "2025-06-26 21:38:16", "level": "DEBUG", "message": "Найдена сессия для создателя: None"}
+{"time": "2025-06-26 21:38:39", "level": "DEBUG", "message": "start_game: user=143274204, private_chat_id=143274204"}
+{"time": "2025-06-26 21:38:39", "level": "DEBUG", "message": "Найдена сессия для создателя: 1750962867143274204"}
+{"time": "2025-06-26 21:39:03", "level": "DEBUG", "message": "choose_trump: query.data=trump_3, match_id=1750962867143274204"}
+{"time": "2025-06-26 21:41:14", "level": "DEBUG", "message": "play_card: query.data=play_2, user=143274204"}
+{"time": "2025-06-26 21:41:14", "level": "DEBUG", "message": "Найдена сессия: 1750962867143274204"}
