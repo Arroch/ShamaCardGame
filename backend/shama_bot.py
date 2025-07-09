@@ -1,6 +1,5 @@
-import logging
-import json
 import os
+import logging
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import (
     Application,
@@ -11,186 +10,113 @@ from telegram.ext import (
     ContextTypes,
     ConversationHandler
 )
-from game_logic import GameEngine, Player
+from .game_api import GameAPI  # Используем новый API слой
 
 # Настройка логгирования
 logger = logging.getLogger(__name__)
-logger.setLevel(logging.DEBUG)
-
-# Форматтер для файла
-file_formatter = logging.Formatter('{"time": "%(asctime)s", "level": "%(levelname)s", "message": "%(message)s"}', datefmt='%Y-%m-%d %H:%M:%S')
-
-# Форматтер для консоли
-console_formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s', datefmt='%H:%M:%S')
-
-# Обработчик для файла
-file_handler = logging.FileHandler('game_logs.json')
-file_handler.setFormatter(file_formatter)
-
-# Обработчик для консоли
-console_handler = logging.StreamHandler()
-console_handler.setFormatter(console_formatter)
-
-# Добавляем обработчики
-logger.addHandler(file_handler)
-logger.addHandler(console_handler)
+logger.setLevel(logging.INFO)
+logger.addHandler(logging.StreamHandler())  # Только консольное логгирование
 
 # Состояния бота
 LOBBY, CHOOSE_TEAM, CHOOSE_TRUMP, GAME = range(4)
 
-# Хранилище игровых сессий
-game_sessions = {}
+# Экземпляр GameAPI для управления игровыми сессиями
+game_api = GameAPI()
+
+# Вспомогательные структуры для хранения связи пользователь-сессия
+user_sessions = {}  # user_id -> session_id
+session_teams = {}  # session_id -> {team: [user_id]}
 
 import time
 
-class GameSession:
-    def __init__(self, creator_id):
-        self.match_id = f"{int(time.time())}{creator_id}"
-        self.creator_id = creator_id
-        self.players = {}
-        self.teams = {1: [], 2: []}
-        self.engine = GameEngine()
-        self.invite_link = f"https://t.me/ShamaGameBot?start={self.match_id}"
-        self.state = "LOBBY"  # LOBBY, IN_GAME
+def create_session_id(creator_id):
+    return f"{int(time.time())}{creator_id}"
 
-    def add_player(self, user_id, username, team, private_chat_id):
-        if user_id in self.players:
-            return False
-        
-        if len(self.teams[team]) >= 2:
-            return False  # В команде уже 2 игрока
-        
-        player_id = len(self.players) + 1
-        player = Player(player_id, team)
-        player.user_id = user_id
-        player.username = username
-        player.private_chat_id = private_chat_id
-        
-        self.players[user_id] = player
-        self.teams[team].append(user_id)
-        self.engine.state.add_player(player)
-        return True
-
-    def get_team_players(self, team):
-        return [self.players[user_id].username for user_id in self.teams[team]]
-
-    def start_game(self):
-        if len(self.players) < 4:
-            return False
-        
-        self.engine.start_game()
-        self.state = "IN_GAME"
-        return True
-
-    def get_shama(self):
-        return self.players[self.creator_id]
+def get_available_team(session_id):
+    """Возвращает доступную команду в сессии"""
+    teams = session_teams.get(session_id, {1: [], 2: []})
+    if len(teams[1]) < 2:
+        return 1
+    elif len(teams[2]) < 2:
+        return 2
+    return None
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user = update.effective_user
     args = context.args
     private_chat_id = update.effective_chat.id
-    logger.debug(f"start: user={user.id}, args={args}, private_chat_id={private_chat_id}")
     
     if args:
-        # Присоединение к игре по ссылке
-        match_id = args[0]
-        if match_id in game_sessions:
-            session = game_sessions[match_id]
+        # Присоединение к существующей игре
+        session_id = args[0]
+        
+        # Проверяем доступные команды
+        team = get_available_team(session_id)
+        if not team:
+            await update.message.reply_text("Все команды заполнены!")
+            return ConversationHandler.END
+        
+        # Добавляем игрока в сессию через API
+        try:
+            # Получаем текущее состояние игры
+            game_state = game_api.get_game_state(session_id)
+            players = [p['name'] for p in game_state['players']]
             
-            # Проверяем свободные команды
-            available_teams = []
-            if len(session.teams[1]) < 2:
-                available_teams.append(1)
-            if len(session.teams[2]) < 2:
-                available_teams.append(2)
-                
-            if not available_teams:
-                await update.message.reply_text("Все команды заполнены!")
-                return ConversationHandler.END
-                
-            # Если доступна только одна команда - добавляем автоматически
-            if len(available_teams) == 1:
-                team = available_teams[0]
-                if session.add_player(user.id, user.username, team, private_chat_id):
-                    team_players = session.get_team_players(team)
-                    await update.message.reply_text(
-                        f"Вы присоединились к команде {team}! Игроки в команде: {', '.join(team_players)}\n"
-                        f"Ожидаем начала игры. Игроков: {len(session.players)}/4"
-                    )
-                    return LOBBY
-                else:
-                    await update.message.reply_text("Ошибка присоединения к игре")
-                    return ConversationHandler.END
-            else:
-                # Предлагаем выбрать команду
-                keyboard = [
-                    [InlineKeyboardButton("Команда 1", callback_data=f"team_1_{match_id}")],
-                    [InlineKeyboardButton("Команда 2", callback_data=f"team_2_{match_id}")]
-                ]
-                reply_markup = InlineKeyboardMarkup(keyboard)
-                
-                # Показываем состав команд
-                team1_players = session.get_team_players(1)
-                team2_players = session.get_team_players(2)
-                
-                await update.message.reply_text(
-                    f"Выберите команду:\n\n"
-                    f"Команда 1: {', '.join(team1_players) if team1_players else 'пусто'}\n"
-                    f"Команда 2: {', '.join(team2_players) if team2_players else 'пусто'}",
-                    reply_markup=reply_markup
-                )
-                context.user_data['match_id'] = match_id
-                return CHOOSE_TEAM
-        else:
+            # Обновляем информацию о командах
+            if session_id not in session_teams:
+                session_teams[session_id] = {1: [], 2: []}
+            session_teams[session_id][team].append(user.id)
+            user_sessions[user.id] = session_id
+            
+            # Формируем список игроков в команде
+            team_players = [p for p in players if p != user.username]
+            
+            await update.message.reply_text(
+                f"Вы присоединились к команде {team}! Игроки в команде: {', '.join(team_players)}\n"
+                f"Ожидаем начала игры. Игроков: {len(players)+1}/4"
+            )
+            return LOBBY
+        except ValueError:
             await update.message.reply_text("Игра не найдена")
             return ConversationHandler.END
     else:
         # Создание новой игры
-        session = GameSession(user.id)
-        game_sessions[session.match_id] = session
-        if session.add_player(user.id, user.username, 1, private_chat_id):
-            await update.message.reply_text(
-                f"Игра создана! Пригласите друзей: {session.invite_link}\n"
-                f"Вы в команде 1. Игроков: 1/4"
-            )
-            return LOBBY
-        else:
-            await update.message.reply_text("Ошибка создания игры")
-            return ConversationHandler.END
+        session_id = create_session_id(user.id)
+        user_sessions[user.id] = session_id
+        session_teams[session_id] = {1: [user.id], 2: []}
+        
+        # Создаем новую игру через API
+        game_api.start_new_game(session_id, [user.username])
+        
+        invite_link = f"https://t.me/ShamaGameBot?start={session_id}"
+        await update.message.reply_text(
+            f"Игра создана! Пригласите друзей: {invite_link}\n"
+            f"Вы в команде 1. Игроков: 1/4"
+        )
+        return LOBBY
 
 async def play_card(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
     await query.answer()
-    logger.debug(f"play_card: query.data={query.data}, user={query.from_user.id}")
     
     user_id = query.from_user.id
     card_index = int(query.data.split("_")[1])
     
-    # Найти игровую сессию по ID пользователя
-    session = None
-    for s in game_sessions.values():
-        if user_id in s.players:
-            session = s
-            break
-    logger.debug(f"Найдена сессия: {session.match_id if session else 'None'}")
-    
-    if not session:
+    # Получаем session_id пользователя
+    session_id = user_sessions.get(user_id)
+    if not session_id:
         await query.edit_message_text(text="Игра не найдена!")
         return GAME
     
-    player = session.players.get(user_id)
-    if not player:
-        await query.edit_message_text(text="Вы не участвуете в этой игре!")
-        return GAME
-    
     try:
-        # Совершаем ход
-        session.engine.play_turn(player.id, card_index)
+        # Совершаем ход через API
+        game_state = game_api.make_move(session_id, str(user_id), card_index)
         
         # Обновляем сообщение с картами
         keyboard = []
-        for i, card in enumerate(player.hand):
-            keyboard.append([InlineKeyboardButton(str(card), callback_data=f"play_{i}")])
+        player_state = next(p for p in game_state['players'] if p['id'] == str(user_id))
+        for i, card in enumerate(player_state['hand']):
+            keyboard.append([InlineKeyboardButton(card, callback_data=f"play_{i}")])
         
         reply_markup = InlineKeyboardMarkup(keyboard)
         await query.edit_message_text(
@@ -199,78 +125,45 @@ async def play_card(update: Update, context: ContextTypes.DEFAULT_TYPE):
         )
         
         # Обновляем состояние стола для всех игроков
-        table_cards = session.engine.state.current_trick
-        table_state = ", ".join(str(card) for card in table_cards) if table_cards else "пусто"
-        for p in session.players.values():
+        table_state = ", ".join(game_state['current_trick']) if game_state['current_trick'] else "пусто"
+        for player in game_state['players']:
             await context.bot.send_message(
-                chat_id=p.private_chat_id,
-                text=f"Козырь: {session.engine.state.get_trump_suit()}\nНа столе: {table_state}"
+                chat_id=int(player['private_chat_id']),
+                text=f"Козырь: {game_state['trump_suit']}\nНа столе: {table_state}"
             )
         
         # Проверяем завершение игры
-        if len(session.engine.state.tricks[1]) + len(session.engine.state.tricks[2]) == 9:
-            # Подсчет и вывод результатов
-            team1_score = session.engine.state.scores.get(1, 0)
-            team2_score = session.engine.state.scores.get(2, 0)
-            
-            # Расчет финальных очков по правилам Шамы
-            six_clubs_team = session.engine.state.six_clubs_team
-            final_scores = {1: 0, 2: 0}
-            
-            for team in [1, 2]:
-                points = team1_score if team == 1 else team2_score
-                
-                if team == six_clubs_team:
-                    if points == 0:
-                        final_scores[team] = 12
-                    elif points < 30:
-                        final_scores[team] = 6
-                    elif points < 60:
-                        final_scores[team] = 3
-                    elif points == 60:
-                        final_scores[team] = 2
-                    else:
-                        final_scores[team] = 0
-                else:
-                    if points == 0:
-                        final_scores[team] = 6
-                    elif points < 30:
-                        final_scores[team] = 3
-                    elif points < 60:
-                        final_scores[team] = 1
-                    else:
-                        final_scores[team] = 0
-            
+        if game_state['status'] == 'completed':
             # Формируем результат
             result = (
                 "Игра завершена!\n"
-                f"Команда 1: {final_scores[1]} очков\n"
-                f"Команда 2: {final_scores[2]} очков\n\n"
+                f"Команда 1: {game_state['scores']['1']} очков\n"
+                f"Команда 2: {game_state['scores']['2']} очков\n\n"
             )
             
             # Определение победителя
-            if final_scores[1] > final_scores[2]:
+            if game_state['scores']['1'] > game_state['scores']['2']:
                 result += "Победила команда 1!"
-            elif final_scores[2] > final_scores[1]:
+            elif game_state['scores']['2'] > game_state['scores']['1']:
                 result += "Победила команда 2!"
             else:
                 result += "Ничья!"
                 
             # Рассылаем результаты всем игрокам
-            for p in session.players.values():
+            for player in game_state['players']:
                 await context.bot.send_message(
-                    chat_id=p.private_chat_id,
+                    chat_id=int(player['private_chat_id']),
                     text=result
                 )
             
             return ConversationHandler.END
         
         # Уведомляем о следующем ходе
-        next_player_id = session.engine.state.players[session.engine.state.current_player_index].id
-        next_player = next(p for p in session.players.values() if p.id == next_player_id)
+        next_player_id = game_state['current_player_id']
+        next_player = next(p for p in game_state['players'] if p['id'] == next_player_id)
         
         await context.bot.send_message(
-            chat_id=next_player.private_chat_id,
+            chat_id=int(next_player['private_chat_id']),
             text="Ваш ход! Выберите карту:"
         )
         
@@ -286,69 +179,64 @@ async def choose_team(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Обработчик выбора команды"""
     query = update.callback_query
     await query.answer()
-    logger.debug(f"choose_team: query.data={query.data}, user={query.from_user.id}")
     
     data = query.data.split('_')
     team = int(data[1])
-    match_id = data[2]
+    session_id = data[2]
     user = query.from_user
-    private_chat_id = query.message.chat_id
     
-    if match_id not in game_sessions:
-        await query.edit_message_text(text="Игра не найдена!")
-        return ConversationHandler.END
+    # Добавляем игрока в сессию через API
+    try:
+        # Обновляем информацию о командах
+        if session_id not in session_teams:
+            session_teams[session_id] = {1: [], 2: []}
+        session_teams[session_id][team].append(user.id)
+        user_sessions[user.id] = session_id
         
-    session = game_sessions[match_id]
-    
-    if session.add_player(user.id, user.username, team, private_chat_id):
-        team_players = session.get_team_players(team)
+        # Получаем список игроков в команде
+        game_state = game_api.get_game_state(session_id)
+        team_players = [p['name'] for p in game_state['players'] if p['id'] in map(str, session_teams[session_id][team])]
+        
         await query.edit_message_text(
             f"Вы присоединились к команде {team}! Игроки в команде: {', '.join(team_players)}\n"
-            f"Ожидаем начала игры. Игроков: {len(session.players)}/4"
+            f"Ожидаем начала игры. Игроков: {len(game_state['players'])+1}/4"
         )
         return LOBBY
-    else:
+    except Exception:
         await query.edit_message_text("Не удалось присоединиться к команде. Возможно, команда уже заполнена.")
         return ConversationHandler.END
 
 async def start_game(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Обработчик начала игры"""
     user = update.effective_user
-    private_chat_id = update.effective_chat.id
-    logger.debug(f"start_game: user={user.id}, private_chat_id={private_chat_id}")
+    session_id = user_sessions.get(user.id)
     
-    # Найти игру по ID создателя
-    session = None
-    for s in game_sessions.values():
-        if s.creator_id == user.id:
-            session = s
-            break
-    logger.debug(f"Найдена сессия для создателя: {session.match_id if session else 'None'}")
-    
-    if not session:
+    if not session_id:
         await update.message.reply_text("Игра не найдена!")
         return LOBBY
     
-    if len(session.players) < 4:
-        await update.message.reply_text("Недостаточно игроков! Нужно 4 человека")
-        return LOBBY
-    
-    if session.start_game():
-        shama = session.get_shama()
+    try:
+        # Получаем текущее состояние
+        game_state = game_api.get_game_state(session_id)
+        
+        if len(game_state['players']) < 4:
+            await update.message.reply_text("Недостаточно игроков! Нужно 4 человека")
+            return LOBBY
         
         # Формируем информацию о командах
-        team1_players = ", ".join(session.get_team_players(1))
-        team2_players = ", ".join(session.get_team_players(2))
+        team1_players = [p['name'] for p in game_state['players'] if p['id'] in map(str, session_teams[session_id][1])]
+        team2_players = [p['name'] for p in game_state['players'] if p['id'] in map(str, session_teams[session_id][2])]
+        
         match_info = (
-            f"Игра №{session.match_id}\n"
-            f"Команды: {team1_players} vs {team2_players}\n"
-            f"Шама: {shama.username}"
+            f"Игра №{session_id}\n"
+            f"Команды: {', '.join(team1_players)} vs {', '.join(team2_players)}\n"
+            f"Шама: {user.username}"
         )
         
         # Рассылаем уведомление всем игрокам
-        for player in session.players.values():
+        for player in game_state['players']:
             await context.bot.send_message(
-                chat_id=player.private_chat_id,
+                chat_id=int(player['private_chat_id']),
                 text=f"{match_info}\nИгра началась! Шама выбирает козырь..."
             )
         
@@ -362,56 +250,55 @@ async def start_game(update: Update, context: ContextTypes.DEFAULT_TYPE):
         reply_markup = InlineKeyboardMarkup(keyboard)
         
         await context.bot.send_message(
-            chat_id=shama.private_chat_id,
+            chat_id=update.effective_chat.id,
             text="Выберите козырь:",
             reply_markup=reply_markup
         )
         
-        context.user_data['match_id'] = session.match_id
+        context.user_data['session_id'] = session_id
         return CHOOSE_TRUMP
-    else:
-        await update.message.reply_text("Ошибка начала игры")
+    except Exception as e:
+        await update.message.reply_text(f"Ошибка начала игры: {str(e)}")
         return LOBBY
 
 async def choose_trump(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Обработчик выбора козыря"""
     query = update.callback_query
     await query.answer()
-    logger.debug(f"choose_trump: query.data={query.data}, match_id={context.user_data.get('match_id')}")
     
     trump_index = int(query.data.split("_")[1])
-    match_id = context.user_data['match_id']
-    
-    if match_id not in game_sessions:
-        await query.edit_message_text(text="Игра не найдена!")
-        return ConversationHandler.END
-        
-    session = game_sessions[match_id]
-    session.engine.state.trump_suit = trump_index
-    
-    # Уведомляем всех игроков о козыре
+    session_id = context.user_data['session_id']
     suits = ["♠", "♥", "♦", "♣"]
-    for player in session.players.values():
-        await context.bot.send_message(
-            chat_id=player.private_chat_id,
-            text=f"Козырь: {suits[trump_index]}\nНа столе: пусто"
-        )
     
-    # Рассылаем карты игрокам
-    for player in session.players.values():
-        keyboard = []
-        for i, card in enumerate(player.hand):
-            keyboard.append([InlineKeyboardButton(str(card), callback_data=f"play_{i}")])
+    try:
+        # Устанавливаем козырь через API
+        game_state = game_api.make_move(session_id, "system", trump_index)
         
-        reply_markup = InlineKeyboardMarkup(keyboard)
-        await context.bot.send_message(
-            chat_id=player.private_chat_id,
-            text="Ваши карты:",
-            reply_markup=reply_markup
-        )
-    
-    await query.edit_message_text(text=f"Выбран козырь: {suits[trump_index]}")
-    return GAME
+        # Уведомляем всех игроков о козыре
+        for player in game_state['players']:
+            await context.bot.send_message(
+                chat_id=int(player['private_chat_id']),
+                text=f"Козырь: {suits[trump_index]}\nНа столе: пусто"
+            )
+        
+        # Рассылаем карты игрокам
+        for player in game_state['players']:
+            keyboard = []
+            for i, card in enumerate(player['hand']):
+                keyboard.append([InlineKeyboardButton(card, callback_data=f"play_{i}")])
+            
+            reply_markup = InlineKeyboardMarkup(keyboard)
+            await context.bot.send_message(
+                chat_id=int(player['private_chat_id']),
+                text="Ваши карты:",
+                reply_markup=reply_markup
+            )
+        
+        await query.edit_message_text(text=f"Выбран козырь: {suits[trump_index]}")
+        return GAME
+    except Exception as e:
+        await query.edit_message_text(text=f"Ошибка: {str(e)}")
+        return ConversationHandler.END
 
 def main():
     token = os.environ.get("BOT_TOKEN")
