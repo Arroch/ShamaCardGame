@@ -199,7 +199,7 @@ async def play_card(update: Update, context: ContextTypes.DEFAULT_TYPE):
         )
         
         # Обновляем состояние стола для всех игроков
-        table_cards = session.engine.current_trick
+        table_cards = session.engine.state.current_trick
         table_state = ", ".join(str(card) for card in table_cards) if table_cards else "пусто"
         for p in session.players.values():
             await context.bot.send_message(

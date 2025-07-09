@@ -378,3 +378,13 @@ telegram.error.InvalidToken: The token `BOT_TOKEN` was rejected by the server.
 {"time": "2025-06-26 21:39:03", "level": "DEBUG", "message": "choose_trump: query.data=trump_3, match_id=1750962867143274204"}
 {"time": "2025-06-26 21:41:14", "level": "DEBUG", "message": "play_card: query.data=play_2, user=143274204"}
 {"time": "2025-06-26 21:41:14", "level": "DEBUG", "message": "Найдена сессия: 1750962867143274204"}
+{"time": "2025-07-09 21:50:00", "level": "DEBUG", "message": "start: user=8162355029, args=[], private_chat_id=8162355029"}
+{"time": "2025-07-09 21:50:29", "level": "DEBUG", "message": "start: user=143274204, args=['17520870008162355029'], private_chat_id=143274204"}
+{"time": "2025-07-09 21:50:45", "level": "DEBUG", "message": "choose_team: query.data=team_1_17520870008162355029, user=143274204"}
+{"time": "2025-07-09 21:50:55", "level": "DEBUG", "message": "start: user=6925421082, args=['17520870008162355029'], private_chat_id=6925421082"}
+{"time": "2025-07-09 21:51:04", "level": "DEBUG", "message": "start: user=7579356988, args=['17520870008162355029'], private_chat_id=7579356988"}
+{"time": "2025-07-09 21:51:26", "level": "DEBUG", "message": "start_game: user=8162355029, private_chat_id=8162355029"}
+{"time": "2025-07-09 21:51:26", "level": "DEBUG", "message": "Найдена сессия для создателя: 17520870008162355029"}
+{"time": "2025-07-09 21:51:49", "level": "DEBUG", "message": "choose_trump: query.data=trump_3, match_id=17520870008162355029"}
+{"time": "2025-07-09 21:52:55", "level": "DEBUG", "message": "play_card: query.data=play_2, user=8162355029"}
+{"time": "2025-07-09 21:52:55", "level": "DEBUG", "message": "Найдена сессия: 17520870008162355029"}
