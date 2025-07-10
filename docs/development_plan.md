@@ -48,32 +48,67 @@ graph LR
 ## Схема базы данных
 ```mermaid
 erDiagram
+    EVENTS ||--o{ PLAYERS : contains
+    MATCHES ||--o{ PLAYERS : contains
     MATCHES ||--o{ GAMES : contains
+    MATCHES ||--o{ TURNS : contains
+    GAMES ||--o{ TURNS : contains
+    EVENTS {
+        int user_id FK
+        timestamp timestamp
+        varchar event
+        data data
+        type else
+    }
     MATCHES {
-        int id PK
+        int id PK 
         timestamp start_time
         timestamp end_time
-        json players_info
+        int player_11
+        int player_12
+        int player_21
+        int player_22
         int winning_team
-        json score_change
+        int total_score_1
+        int total_score_2
     }
     GAMES {
-        int id PK
+        int id
         int match_id FK
-        int turn_id
         varchar trump
-        json tricks
+        int shama
+        list hand_11
+        list hand_12
+        list hand_21
+        list hand_22
+    }
+    TURNS {
+        int id
+        int match_id FK
+        int game_id FK
+        int first_turn
+        varchar card_11
+        varchar card_12
+        varchar card_21
+        varchar card_22
+        int loot_value
+        int lootting_team
+    }
+    PLAYERS {
+        int id PK
+        varchar name
+        int games
+        int wins
+        type else
     }
 ```
 
 ## Система логирования
 - **MatchesLog**: Хранит данные матчей
 - **GamesLog**: Хранит данные раздач (9 кругов)
-- Каждая взятка содержит:
-  - Карты игроков
-  - Победившую команду
-  - Флаг использования козыря
-  - Сумму очков
+- **TurnsLog**: Хранит данные ходов
+- **PlayersLog**: Хранит данные игроков
+- **EventsLog**: Хранит данные событий (регистрация, создание игры, подключение к игре и тд)
 
 ## Необходимые ресурсы
 1. Сервер PostgreSQL
