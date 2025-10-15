@@ -1,3 +1,11 @@
+class GameException(Exception):
+    """Базовое исключение для игровых ошибок"""
+    pass
+
+class InvalidPlayerAction(GameException):
+    """Недопустимое действие игрока"""
+    pass
+
 class Card:
     # Маппинг мастей на символы
     SUIT_SYMBOLS = {
@@ -57,6 +65,20 @@ class Player:
         return f"{self.name}"
 
 class MatchState:
+    """Класс для хранения состояния матча в игре Шама.
+    
+    Атрибуты:
+        status_code (int): Текущий статус игры (код состояния)
+        players (dict): Словарь игроков формата {id: Player}
+        match_scores (dict): Очки команд за игры (ключи: 10, 20)
+        game_scores (dict): Очки команд за взятки (ключи: 10, 20)
+        first_player_index (int): ID игрока с шестеркой треф (шамой)
+        trump (str): Текущий козырь (масть)
+        current_player_index (int): ID текущего игрока
+        current_table (list): Карты, выложенные на стол в текущем коны
+        current_turn (int): Номер текущего хода (1-9)
+    """
+    
     def __init__(self):
         """Инициализация состояния игры"""
         self.status_code = 100
@@ -92,7 +114,7 @@ class MatchState:
             self.status_code += 1
             return self.status_code
         else:
-            raise IndexError("Игра не создана или стол полон")
+            raise InvalidPlayerAction("Игра не создана или стол полон")
         
     def put_card(self, player_index: int, card: Card):
         """Выложить карту на стол"""
@@ -159,19 +181,18 @@ class GameEngine:
         deck = self.create_deck()
         random.shuffle(deck)
         # Очищаем руки каждого игрока перед раздачей
-        for p_index in self.state.players:
-            self.state.players[p_index].clear_hand()
+        for player in self.state.players.values():
+            player.clear_hand()
 
-        # Раздаем по одной карте по кругу, пока у всех не будет по 9 карт
-        for i in range(9):
-            for p_index in self.state.players:
-                if deck:
-                    card = deck.pop()
-                    self.state.players[p_index].add_card(card)
-                    
-                    # Проверяем, является ли карта шестеркой треф
-                    if card.rank == '6' and card.suit == 'clubs':
-                        self.state.first_player_index = p_index
+        # Оптимизированная раздача карт: один цикл вместо вложенных
+        player_ids = list(self.state.players.keys())
+        for i, card in enumerate(deck):
+            player_index = player_ids[i % len(player_ids)]
+            self.state.players[player_index].add_card(card)
+            
+            # Проверяем, является ли карта шестеркой треф
+            if card.rank == '6' and card.suit == 'clubs':
+                self.state.first_player_index = player_index
     
     def start_game(self) -> str:
         """Возвращает имя игрока с шамой"""
@@ -193,10 +214,10 @@ class GameEngine:
     def set_trump_by_player(self, player_index: int, suit: str):
         """Установка козыря игроком"""
         if player_index != self.state.first_player_index:
-            raise ValueError("Только игрок с шестеркой треф может устанавливать козырь")
+            raise InvalidPlayerAction("Только игрок с шестеркой треф может устанавливать козырь")
         
-        if suit not in ['hearts', 'diamonds', 'clubs', 'spades']:
-            raise ValueError("Недопустимая масть для козыря")
+        if suit not in Card.SUIT_SYMBOLS.keys():
+            raise InvalidPlayerAction("Недопустимая масть для козыря")
         self.state.set_trump(suit)
 
         if self.state.status_code == 203:
@@ -210,19 +231,19 @@ class GameEngine:
         
         # Проверяем, что ход делает правильный игрок
         if player_index != self.state.current_player_index:
-            raise ValueError("Сейчас не ваш ход!")
+            raise InvalidPlayerAction("Сейчас не ваш ход!")
         
         # Проверяем, что у игрока есть карты
         if len(player.hand) == 0:
-            raise ValueError("У Вас нет больше карт!")
+            raise InvalidPlayerAction("У Вас нет больше карт!")
         
         # Проверяем, что сделали меньше 9-ти ходов
         if self.state.current_turn >= 10:
-            raise ValueError("Уже сделали 9 ходов!")
+            raise InvalidPlayerAction("Уже сделали 9 ходов!")
         
         # Проверяем, что на столе меньше 4-х карт
         if len(self.state.current_table) >= 4:
-            raise ValueError("На столе уже 4 карты!")
+            raise InvalidPlayerAction("На столе уже 4 карты!")
         
         # Выставляем номер хода
         if len(self.state.current_table) == 3:
