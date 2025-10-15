@@ -22,8 +22,8 @@ class Card:
     def __repr__(self):
         """Строковое представление карты с символами мастей"""
         symbol = Card.SUIT_SYMBOLS.get(self.suit, '?')
-        return f"{self.rank}{symbol}"
-
+        return f"{self.rank:>2}{symbol}"
+    
 class Player:
     def __init__(self, player_id: int, player_name: str):
         """
@@ -47,6 +47,10 @@ class Player:
     def get_hand(self) -> list:
         """Показать карты на руке у игрока"""
         return self.hand
+        
+    def clear_hand(self) -> list:
+        """Убрать карты на руке у игрока"""
+        self.hand = []
     
     def __repr__(self):
         """Строковое представление игрока"""
@@ -63,10 +67,7 @@ class MatchState:
         self.trump = None  # Текущий козырь
         self.current_player_index = 0  # Индекс текущего игрока
         self.current_table = []  # Карты на столе
-        self.current_turn = 0  # Номер хода
-        # self.tricks = {10: [], 20: []}  # Взятки по командам
-        # self.six_clubs_team = None  # Команда с шестеркой треф
-        # self.move_history = []  # История ходов
+        self.current_turn = 1  # Номер хода
         
     def set_status_code(self, status_code: int):
         self.status_code = status_code
@@ -74,25 +75,28 @@ class MatchState:
     def set_current_player_index(self, p_index: int):
         self.current_player_index = p_index
         
-    def set_current_turn(self):
-        self.current_turn += 1
+    def set_current_turn(self, new_turn=None):
+        if new_turn:
+            self.current_turn = new_turn
+        else:
+            self.current_turn += 1
         
     def set_trump(self, suit: str) -> tuple:
-        """Возвращает кортеж (индекс игрока кто установил козырь, и козырь)"""
         self.trump = suit
-        self.status_code = 203
+        self.set_status_code(203)
         
     def add_player(self, p_index: int, player: Player):
         """Добавление игрока в игру"""
         if 100 <= self.status_code < 104:
             self.players[p_index] = player
             self.status_code += 1
+            return self.status_code
         else:
             raise IndexError("Игра не создана или стол полон")
         
     def put_card(self, player_index: int, card: Card):
         """Выложить карту на стол"""
-        self.current_table.append((player_index, card))
+        self.current_table.append({'player_index': player_index, 'player': self.players[player_index], 'card': card})
 
     def clear_table(self):
         """Очистка стола"""
@@ -106,6 +110,27 @@ class MatchState:
             self.game_scores[team_index] += incr
         else:
             raise ValueError("Неверный тип счета")
+
+    def clear_score(self, score_type: str):
+        """Очистить счет матча/игры у команд"""
+        if score_type == 'match':
+            self.match_scores[10] = 0
+            self.match_scores[20] = 0
+        elif score_type == 'game':
+            self.game_scores[10] = 0
+            self.game_scores[20] = 0
+        else:
+            raise ValueError("Неверный тип счета")
+        
+    def show_table(self):
+        card_iter = iter(self.current_table)
+        while True:
+            try:
+                card = next(card_iter)
+                print(f"{card['player']}: {card['card']}", end=", ")
+            except StopIteration:
+                print()
+                break
         
 class GameEngine:
     PLAYERS_QUEUE = {
@@ -118,7 +143,6 @@ class GameEngine:
     def __init__(self, state):
         """Инициализация игрового движка"""
         self.state = state
-        self.deck = self.create_deck()
         
     @staticmethod
     def create_deck() -> list[Card]:
@@ -136,13 +160,17 @@ class GameEngine:
     def deal_cards(self):
         """Раздача карт игрокам (по 9 карт каждому)"""
         import random
-        random.shuffle(self.deck)
-        
+        deck = self.create_deck()
+        random.shuffle(deck)
+        # Очищаем руки каждого игрока перед раздачей
+        for p_index in self.state.players:
+            self.state.players[p_index].clear_hand()
+
         # Раздаем по одной карте по кругу, пока у всех не будет по 9 карт
         for i in range(9):
             for p_index in self.state.players:
-                if self.deck:
-                    card = self.deck.pop()
+                if deck:
+                    card = deck.pop()
                     self.state.players[p_index].add_card(card)
                     
                     # Проверяем, является ли карта шестеркой треф
@@ -168,15 +196,15 @@ class GameEngine:
         
     def set_trump_by_player(self, player_index: int, suit: str):
         """Установка козыря игроком"""
-        if player_index != self.first_player_index:
+        if player_index != self.state.first_player_index:
             raise ValueError("Только игрок с шестеркой треф может устанавливать козырь")
         
         if suit not in ['hearts', 'diamonds', 'clubs', 'spades']:
             raise ValueError("Недопустимая масть для козыря")
-        self.trump = suit
+        self.state.set_trump(suit)
 
-        if self.status_code == 203:
-            return self.state.status_code, self.players[player_index].name, self.trump
+        if self.state.status_code == 203:
+            return self.state.status_code, self.state.players[player_index].name, self.state.trump
         else:
             raise ValueError("Неудалось назначить козырь")
     
@@ -193,7 +221,7 @@ class GameEngine:
             raise ValueError("У Вас нет больше карт!")
         
         # Проверяем, что сделали меньше 9-ти ходов
-        if self.state.current_turn >= 9:
+        if self.state.current_turn >= 10:
             raise ValueError("Уже сделали 9 ходов!")
         
         # Проверяем, что на столе меньше 4-х карт
@@ -201,8 +229,8 @@ class GameEngine:
             raise ValueError("На столе уже 4 карты!")
         
         # Выставляем номер хода
-        if len(self.state.current_table) == 0:
-            self.set_current_turn()
+        if len(self.state.current_table) == 3:
+            self.state.set_current_turn()
         
         # Играем карту
         card = player.play_card(card_index)
@@ -213,11 +241,8 @@ class GameEngine:
         if 300 < self.state.status_code < 304:
             next_player_index = self.PLAYERS_QUEUE[self.state.current_player_index]
             self.state.set_current_player_index(next_player_index)
-        else:
-            self.state.set_current_player_index(100)
 
-        # print(f"Игрок {player} сыграл: {card}, селдующий ходит {current_player_index}")
-        return self.state.status_code, player, card, self.state.current_player_index
+        return self.state.status_code, player, card
     
     def complete_turn(self):
         # Функция для определения силы карты
@@ -249,23 +274,27 @@ class GameEngine:
         # Проверяем завершение кона (4 хода)
         if self.state.status_code == 304:
             # Определяем победителя взятки по правилам Шамы
-            first_suit = self.state.current_table[0][1].suit
+            first_suit = self.state.current_table[0]['card'].suit
             trump = self.state.trump
             # Находим карту с максимальной силой
-            strongest_card = max(self.state.current_table, key=lambda x: card_power(x[1]))
-            winning_player_index = strongest_card[0]
-            winning_card = strongest_card[1]
+            strongest_card = max(self.state.current_table, key=lambda x: card_power(x['card']))
+            winning_player_index = strongest_card['player_index']
+            winning_card = strongest_card['card']
             winning_team_index = winning_player_index // 10 * 10
             
             # Подсчитываем очки за взятку
-            trick_points = sum(card.value for _, card in self.state.current_table)
+            trick_points = sum(c['card'].value for c in self.state.current_table)
             self.state.increase_score(winning_team_index, trick_points, 'game')
             
             self.state.current_player_index = winning_player_index
-            self.clear_table()
-            self.state.set_status_code(400 + self.state.current_turn)
-            # print(f"Взятку выиграла команда {winning_team} (игрок {winning_team_index})! Очки: {trick_points}")
-            return self.state.status_code, winning_card, winning_player_index, winning_team_index, trick_points
+            print(f"Карты на столе:", end=' ')
+            self.state.show_table()
+            self.state.clear_table()
+            if self.state.current_turn <= 9:
+                self.state.set_status_code(300)
+            else:
+                self.state.set_status_code(409)
+            return self.state.status_code, winning_card, winning_player_index, trick_points
         else:
             raise IndexError("На столе меньше 4х карт (satus_code != 304)")
         
@@ -289,35 +318,38 @@ class GameEngine:
             losed_team = 10 if scores[10] < scores[20] or scores[10] == 60 and shama_team == 10 else 20
             if shama_team == losed_team:
                 if scores[losed_team] == 0:
-                    return losed_team, 12
+                    game_results = scores, losed_team, 12
                 elif scores[losed_team] < 30:
-                    return losed_team, 6
+                    game_results = scores, losed_team, 6
                 elif scores[losed_team] < 60:
-                    return losed_team, 3
+                    game_results = scores, losed_team, 3
                 else:
-                    return losed_team, 2
+                    game_results = scores, losed_team, 2
             else:
                 if scores[losed_team] == 0:
-                    return losed_team, 6
+                    game_results = scores, losed_team, 6
                 elif scores[losed_team] < 30:
-                    return losed_team, 3
+                    game_results = scores, losed_team, 3
                 else:
-                    return losed_team, 1
+                    game_results = scores, losed_team, 1
+            return game_results
 
         # Проверка завершения игры (9 взяток)
-        if self.state.status_code == 409:
-            print("Игра завершена!")
-            losed_team, losed_points = get_points(self.state.first_player_index, self.state.game_scores)
+        if self.state.current_turn > 9:
+            scores, losed_team, losed_points = get_points(self.state.first_player_index, self.state.game_scores.copy())
             self.state.increase_score(losed_team, losed_points, 'match')
+            self.state.clear_score('game')
             if self.state.match_scores[losed_team] < 12:
                 self.state.set_status_code(500)
+                self.state.set_current_turn(1)
             else:
                 self.state.set_status_code(600)
-            return self.state.status_code, losed_team, losed_points, self.state.match_scores
+            return self.state.status_code, scores, losed_team, losed_points
         
     def complete_match(self):  
         self.state.set_status_code(700)
         return self.state.status_code
+    
 # Пример использования
 if __name__ == "__main__":
     state = MatchState()
