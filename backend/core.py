@@ -151,11 +151,7 @@ class GameEngine:
         ranks = ['6', '7', '8', '9', '10', 'J', 'Q', 'K', 'A']
         values = [0, 0, 0, 0, 10, 2, 3, 4, 11]  # Значения карт
         
-        deck = []
-        for suit in suits:
-            for i, rank in enumerate(ranks):
-                deck.append(Card(suit, rank, values[i]))
-        return deck
+        return [Card(suit, rank, values[i]) for suit in suits for i, rank in enumerate(ranks)]
     
     def deal_cards(self):
         """Раздача карт игрокам (по 9 карт каждому)"""
