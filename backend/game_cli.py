@@ -136,46 +136,48 @@ def main(status_code, state):
                         f"Показать карты игрока {f_player}\ny - да, re - перераздача, f - завершить игру и выйти в меню\n"
                     ).lower()
 
-                    if input_comand == 'y':
-                        print(state.players[state.first_player_index].get_hand())
-                        suit = SUITS[int(input("Выебрите козырь:\n1 - '♣', 2 - '♠', 3 - '♥', 4 - '♦'\n")) - 1]
-                        try:
-                            status_code, player_name, trump = engine.set_trump_by_player(state.first_player_index, suit)
-                            print("\033c\033[3J", end="")
-                            print(f"Игрок: {player_name} выбрал козырь: {Card.SUIT_SYMBOLS[trump]}")
-                        except ValueError as e:
-                            print(f"Статус: {status_code}, Ошибка: {e}", )
-                    elif input_comand == 're':
-                        state.set_status_code(104)
-                        status_code = state.status_code
-                    elif input_comand == 'f':
-                        state.set_status_code(700)
-                        status_code = 700
+                    match input_comand:
+                        case 'y':
+                            print(state.players[state.first_player_index].get_hand())
+                            suit = SUITS[int(input("Выебрите козырь:\n1 - '♣', 2 - '♠', 3 - '♥', 4 - '♦'\n")) - 1]
+                            try:
+                                status_code, player_name, trump = engine.set_trump_by_player(state.first_player_index, suit)
+                                print("\033c\033[3J", end="")
+                                print(f"Игрок: {player_name} выбрал козырь: {Card.SUIT_SYMBOLS[trump]}")
+                            except ValueError as e:
+                                print(f"Статус: {status_code}, Ошибка: {e}", )
+                        case 're':
+                            state.set_status_code(104)
+                            status_code = state.status_code
+                        case 'f':
+                            state.set_status_code(700)
+                            status_code = 700
                 if 409 > status_code >= 203:
                     while state.status_code < 304:
                         print(f"Ходит игрок: {state.players[state.current_player_index]}")
                         input_comand = input(
                             f"Показать карты игрока {state.players[state.current_player_index]}\ny - да, f - завершить игру и выйти в меню\n"
                         ).lower()
-                    if input_comand == 'y':
-                        show_state(state)
-                        print('Выши карты:')
-                        show_hand(state.players[state.current_player_index].get_hand())
-                        try:
-                            input_comand = int(input(
-                                f"Выберите номер карты для хода\n"
-                            ))
-                            try:
-                                status_code, player, card = engine.play_turn(state.current_player_index, input_comand - 1)
-                                print("\033c\033[3J", end="")
-                                print(f"Игрок {player} сыграл: {card}")
-                            except IndexError:
-                                print("У вас нет такой карты!")
-                        except ValueError:
-                            print("Нужно ввести число")
-                    elif input_comand == 'f':
-                        state.set_status_code(700)
-                        status_code = 0
+                        match input_comand:
+                            case 'y':
+                                show_state(state)
+                                print('Выши карты:')
+                                show_hand(state.players[state.current_player_index].get_hand())
+                                try:
+                                    input_comand = int(input(
+                                        f"Выберите номер карты для хода\n"
+                                    ))
+                                    try:
+                                        status_code, player, card = engine.play_turn(state.current_player_index, input_comand - 1)
+                                        print("\033c\033[3J", end="")
+                                        print(f"Игрок {player} сыграл: {card}")
+                                    except IndexError:
+                                        print("У вас нет такой карты!")
+                                except ValueError:
+                                    print("Нужно ввести число")
+                            case 'f':
+                                state.set_status_code(700)
+                                status_code = 0
                 if status_code == 304:
                     status_code, winning_card, winning_player_index, trick_points = engine.complete_turn()
                     print(f"Взятку забрал игрок {state.players[winning_player_index]} картой {winning_card}! Начислили: {trick_points}")
@@ -204,3 +206,4 @@ if __name__ == "__main__":
     state = None
     while status_code >= 0:
         status_code, state = main(status_code, state)
+
