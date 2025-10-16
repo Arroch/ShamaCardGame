@@ -177,7 +177,7 @@ def main(status_code, state):
                                     print("Нужно ввести число")
                             case 'f':
                                 state.set_status_code(700)
-                                status_code = 0
+                                status_code = 700
                 if status_code == 304:
                     status_code, winning_card, winning_player_index, trick_points = engine.complete_turn()
                     print(f"Взятку забрал игрок {state.players[winning_player_index]} картой {winning_card}! Начислили: {trick_points}")
