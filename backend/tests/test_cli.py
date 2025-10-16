@@ -97,6 +97,7 @@ class TestGameCLI(unittest.TestCase):
         # Подготовим состояние
         state = self.state
         state.trump = 'hearts'
+        state.first_player_index = 11
         state.current_turn = 3
         state.match_scores = {10: 5, 20: 7}
         
@@ -109,7 +110,7 @@ class TestGameCLI(unittest.TestCase):
         # Проверяем вызовы print
         mock_print.assert_called()
         # Проверяем, что вывод содержит информацию о козыре и ходе
-        self.assertTrue(any('Козырь: ♥' in str(args) for args, _ in mock_print.call_args_list))
+        self.assertTrue(any('Козырь: ♥, хвалил Player 1' in str(args) for args, _ in mock_print.call_args_list))
         self.assertTrue(any('Номер хода: 3' in str(args) for args, _ in mock_print.call_args_list))
     
     @patch('builtins.input', side_effect=['Player A', 'Player B', 'Player C', 'Player D'])

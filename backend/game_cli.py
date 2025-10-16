@@ -74,7 +74,7 @@ def show_state(state):
 {state.players[11]} и {state.players[12]} - счет: {state.match_scores[10]}
 {state.players[21]} и {state.players[22]} - счет: {state.match_scores[20]}
 """)
-    print(f"Козырь: {Card.SUIT_SYMBOLS[state.trump]}")
+    print(f"Козырь: {Card.SUIT_SYMBOLS[state.trump]}, хвалил {state.players[state.first_player_index]}")
     print(f"Номер хода: {state.current_turn}")
     print(f"Карты на столе:", end=' ')
     state.show_table()
