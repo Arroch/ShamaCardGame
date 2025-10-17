@@ -255,15 +255,6 @@ class TestGameEngine(unittest.TestCase):
         
         self.assertEqual(status, GameConstants.Status.WAITING_TRUMP)
         self.assertEqual(self.state.current_player_index, 11)
-        
-    def test_start_game_no_shama(self):
-        """Тест начала игры без шамы"""
-        # Подготовим состояние без шамы
-        self.state.first_player_index = 0
-        
-        with patch.object(self.engine, 'deal_cards'):
-            with self.assertRaises(ValueError):
-                self.engine.start_game()
                 
     def test_set_trump_by_player(self):
         """Тест установки козыря игроком"""

@@ -79,7 +79,7 @@ class Player:
         6♣, J♣,  J♠, J♥, J♦, A/10/K/Q♣, A/10/K/Q♠, A/10/K/Q♥, A/10/K/Q♦
         (3, 0, 0), (2, SUIT_ORDER, 0), (int(is_trump), SUIT_ORDER, RANK_ORDER)
         """
-        self.hand.sort(reverse=True, key=lambda item: item.get_order())
+        self.hand.sort(reverse=True, key=lambda item: item.get_order(trump))
 
     def get_hand(self) -> list:
         """Показать карты на руке у игрока"""
@@ -276,9 +276,8 @@ class GameEngine:
         # Раздаем карты
         self.deal_cards()
         self.state.set_status(GameConstants.Status.CARDS_DEALT)
-        # Сортируем карты
-        for p in self.state.players:
-                self.state.players[p].sort_hand()
+        # Сортируем карты первого игрока для удобного отображения
+        self.state.players[self.state.first_player_index].sort_hand()
                 
         # Устанавливаем первого игрока (с шестеркой треф)
         if self.state.first_player_index:
@@ -298,6 +297,10 @@ class GameEngine:
         self.state.set_trump(suit)
 
         if self.state.status == GameConstants.Status.TRUMP_SELECTED:
+                    # Сортируем карты всех игроков с учетом козыря
+            for p in self.state.players:
+                    self.state.players[p].sort_hand(suit)
+
             return self.state.status, self.state.players[player_index].name, self.state.trump
         else:
             raise ValueError("Неудалось назначить козырь")
