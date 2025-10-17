@@ -1,5 +1,19 @@
+"""
+Модуль с ядром игры Шама.
+
+Содержит основные классы и логику для реализации правил
+карточной игры Шама.
+
+Автор: ShamaVibe Team
+"""
+
+from game_constants import GameConstants
+
 class GameException(Exception):
-    """Базовое исключение для игровых ошибок"""
+    """Базовое исключение для игровых ошибок.
+    
+    Служит родительским классом для всех игровых исключений.
+    """
     pass
 
 class InvalidPlayerAction(GameException):
@@ -7,14 +21,6 @@ class InvalidPlayerAction(GameException):
     pass
 
 class Card:
-    # Маппинг мастей на символы
-    SUIT_SYMBOLS = {
-        'hearts': '♥',
-        'diamonds': '♦',
-        'clubs': '♣',
-        'spades': '♠'
-    }
-    
     def __init__(self, suit: str, rank: str, value: int):
         """
         Инициализация карты.
@@ -26,10 +32,22 @@ class Card:
         self.suit = suit
         self.rank = rank
         self.value = value
+
+    def get_order(self, trump=None):
+
+        if self.rank == '6' and self.suit == 'clubs':
+            first_rank = 3
+        elif self.rank == 'J':
+            first_rank = 2
+        elif self.suit == trump:
+            first_rank = 1
+        else:
+            first_rank = 0
+        return (first_rank, GameConstants.SUIT_ORDER.get(self.suit, 0), GameConstants.RANK_ORDER.get(self.rank, 0))
         
     def __repr__(self):
         """Строковое представление карты с символами мастей"""
-        symbol = Card.SUIT_SYMBOLS.get(self.suit, '?')
+        symbol = GameConstants.SUIT_SYMBOLS.get(self.suit, '?')
         return f"{self.rank:>2}{symbol}"
     
 class Player:
@@ -51,7 +69,18 @@ class Player:
     def play_card(self, card_index: int) -> Card:
         """Сыграть карту по индексу"""
         return self.hand.pop(card_index)
-        
+    
+    def sort_hand(self, trump=None):
+        """
+        HEARTS: '',
+        DIAMONDS: '',
+        CLUBS: '',
+        SPADES: ''
+        6♣, J♣,  J♠, J♥, J♦, A/10/K/Q♣, A/10/K/Q♠, A/10/K/Q♥, A/10/K/Q♦
+        (3, 0, 0), (2, SUIT_ORDER, 0), (int(is_trump), SUIT_ORDER, RANK_ORDER)
+        """
+        self.hand.sort(reverse=True, key=lambda item: item.get_order())
+
     def get_hand(self) -> list:
         """Показать карты на руке у игрока"""
         return self.hand
@@ -68,7 +97,7 @@ class MatchState:
     """Класс для хранения состояния матча в игре Шама.
     
     Атрибуты:
-        status_code (int): Текущий статус игры (код состояния)
+        status (GameConstants.Status): Перечисление статуса игры
         players (dict): Словарь игроков формата {id: Player}
         match_scores (dict): Очки команд за игры (ключи: 10, 20)
         game_scores (dict): Очки команд за взятки (ключи: 10, 20)
@@ -81,18 +110,34 @@ class MatchState:
     
     def __init__(self):
         """Инициализация состояния игры"""
-        self.status_code = 100
-        self.players = {11: None, 12: None, 21: None, 22: None}  # Список игроков
-        self.match_scores = {10: 0, 20: 0}  # Очки команд за игры
-        self.game_scores = {10: 0, 20: 0}  # Очки команд за взятки
+        self.status = GameConstants.Status.WAITING_PLAYERS
+        self.players = {
+            GameConstants.PLAYER_1_1: None, 
+            GameConstants.PLAYER_1_2: None, 
+            GameConstants.PLAYER_2_1: None, 
+            GameConstants.PLAYER_2_2: None
+        }  # Список игроков
+        self.match_scores = {
+            GameConstants.TEAM_1: 0, 
+            GameConstants.TEAM_2: 0
+        }  # Очки команд за игры
+        self.game_scores = {
+            GameConstants.TEAM_1: 0, 
+            GameConstants.TEAM_2: 0
+        }  # Очки команд за взятки
         self.first_player_index = 0  # Индекс игрока с шамой
         self.trump = None  # Текущий козырь
         self.current_player_index = 0  # Индекс текущего игрока
         self.current_table = []  # Карты на столе
         self.current_turn = 1  # Номер хода
+                
+    def set_status(self, status: GameConstants.Status):
+        """Устанавливает состояние игры через перечисление.
         
-    def set_status_code(self, status_code: int):
-        self.status_code = status_code
+        Args:
+            status: Статус игры из GameConstants.Status
+        """
+        self.status = status
         
     def set_current_player_index(self, p_index: int):
         self.current_player_index = p_index
@@ -105,14 +150,29 @@ class MatchState:
         
     def set_trump(self, suit: str) -> tuple:
         self.trump = suit
-        self.set_status_code(203)
+        self.set_status(GameConstants.Status.TRUMP_SELECTED)
         
-    def add_player(self, p_index: int, player: Player):
-        """Добавление игрока в игру"""
-        if 100 <= self.status_code < 104:
-            self.players[p_index] = player
-            self.status_code += 1
-            return self.status_code
+    def add_player(self, player_index: int, player: Player):
+        """Добавление игрока в игру.
+        
+        Args:
+            player_index: Индекс игрока (11, 12, 21, 22) GameConstants.PLAYER_*
+            player: Объект Player для добавления
+            
+        Returns:
+            GameConstants.Status: Текущий статус
+            
+        Raises:
+            InvalidPlayerAction: Если игра не в состоянии ожидания игроков
+                или все места уже заняты
+        """
+        # Проверяем, что игра в состоянии ожидания игроков и валидный индекс
+        if self.status == GameConstants.Status.WAITING_PLAYERS:
+            self.players[player_index] = player
+            
+            # Если добавлены все 4 игрока, обновляем состояние
+            if sum(1 for p in self.players.values() if p is not None) == 4:
+                self.set_status(GameConstants.Status.PLAYERS_ADDED)
         else:
             raise InvalidPlayerAction("Игра не создана или стол полон")
         
@@ -155,12 +215,15 @@ class MatchState:
                 break
         
 class GameEngine:
-    PLAYERS_QUEUE = {
-        11: 21,
-        21: 12,
-        12: 22,
-        22: 11,
-    }
+    """Игровой движок, реализующий логику игры Шама.
+    
+    Отвечает за:
+    - Создание и раздачу колоды
+    - Управление ходом игры
+    - Определение победителя кона
+    - Подсчет очков
+    - Определение победителя матча
+    """
 
     def __init__(self, state):
         """Инициализация игрового движка"""
@@ -176,7 +239,11 @@ class GameEngine:
         return [Card(suit, rank, values[i]) for suit in suits for i, rank in enumerate(ranks)]
     
     def deal_cards(self):
-        """Раздача карт игрокам (по 9 карт каждому)"""
+        """Раздача карт игрокам (по 9 карт каждому).
+        
+        Создаёт колоду, перемешивает и раздаёт карты игрокам.
+        Также определяет, у какого игрока шама (6♣).
+        """
         import random
         deck = self.create_deck()
         random.shuffle(deck)
@@ -190,43 +257,116 @@ class GameEngine:
             player_index = player_ids[i % len(player_ids)]
             self.state.players[player_index].add_card(card)
             
-            # Проверяем, является ли карта шестеркой треф
-            if card.rank == '6' and card.suit == 'clubs':
+            # Проверяем, является ли карта шестеркой треф (шамой)
+            if card.rank == '6' and card.suit == GameConstants.CLUBS:
                 self.state.first_player_index = player_index
     
-    def start_game(self) -> str:
-        """Возвращает имя игрока с шамой"""
+    def start_game(self) -> tuple:
+        """Запускает новую игру (раздачу).
+        
+        Раздает карты, находит игрока с шамой, сортирует карты в руках
+        и устанавливает первого игрока.
+        
+        Returns:
+            status - статус игры
+            
+        Raises:
+            ValueError: Если шама не найдена ни у одного из игроков
+        """
         # Раздаем карты
         self.deal_cards()
-        self.state.set_status_code(201)
+        self.state.set_status(GameConstants.Status.CARDS_DEALT)
         # Сортируем карты
-        for player_num in self.state.players:
-                self.state.players[player_num].hand.sort(reverse=True, key=lambda item: (item.suit, item.value))
+        for p in self.state.players:
+                self.state.players[p].sort_hand()
                 
         # Устанавливаем первого игрока (с шестеркой треф)
         if self.state.first_player_index:
-            self.state.set_status_code(202)
+            self.state.set_status(GameConstants.Status.WAITING_TRUMP)
             self.state.set_current_player_index(self.state.first_player_index)
-            return self.state.status_code, self.state.players[self.state.first_player_index]
+            return self.state.status
         else:
-            raise ValueError("Ни у кого нет шамы???")
+            raise ValueError("Ни у кого нет шамы! Проверьте логику раздачи карт.")
         
     def set_trump_by_player(self, player_index: int, suit: str):
         """Установка козыря игроком"""
         if player_index != self.state.first_player_index:
             raise InvalidPlayerAction("Только игрок с шестеркой треф может устанавливать козырь")
         
-        if suit not in Card.SUIT_SYMBOLS.keys():
+        if suit not in GameConstants.SUIT_SYMBOLS.keys():
             raise InvalidPlayerAction("Недопустимая масть для козыря")
         self.state.set_trump(suit)
 
-        if self.state.status_code == 203:
-            return self.state.status_code, self.state.players[player_index].name, self.state.trump
+        if self.state.status == GameConstants.Status.TRUMP_SELECTED:
+            return self.state.status, self.state.players[player_index].name, self.state.trump
         else:
             raise ValueError("Неудалось назначить козырь")
     
+    def validate_card_play(self, player_index: int, card_index: int) -> bool:
+        """Проверяет допустимость хода по правилам игры.
+        
+        Проверяет, соблюдает ли игрок правила хода:
+        1. Если это первый ход в коне - можно ходить любой картой
+        2. Если нет - нужно ходить в масть, если есть карты этой масти
+        3. Если нет карт в масть - нужно ходить козырем, если есть козыри
+        4. Если нет карт в масть и козырей - можно ходить любой картой
+        
+        Args:
+            player_index: Индекс игрока
+            card_index: Индекс карты в руке игрока
+            
+        Returns:
+            bool: True если ход допустим, False иначе
+        """
+        player = self.state.players[player_index]
+        
+        # Проверяем, что индекс карты в допустимых пределах
+        if card_index < 0 or card_index >= len(player.hand):
+            return False
+            
+        card = player.hand[card_index]
+        
+        # Если это первый ход в коне, любая карта допустима
+        if len(self.state.current_table) == 0:
+            return True
+            
+        # Получаем карту первого хода в коне
+        first_card = self.state.current_table[0]['card']
+        first_suit = first_card.suit
+        
+        # Проверяем наличие карт нужной масти у игрока
+        has_same_suit = any(c.suit == first_suit for c in player.hand)
+        
+        # Если карта той же масти или у игрока нет карт этой масти
+        if card.suit == first_suit or not has_same_suit:
+            return True
+            
+        # Проверяем, есть ли у игрока козыри
+        has_trump = any(c.suit == self.state.trump for c in player.hand)
+        
+        # Если первая карта козырная, игрок должен ответить козырем, если может
+        if first_suit == self.state.trump:
+            return card.suit == self.state.trump or not has_trump
+            
+        # Если игрок не пошел в масть, должен ходить козырем, если он есть
+        return card.suit == self.state.trump or not has_trump
+    
     def play_turn(self, player_index: int, card_index: int):
-        """Обработка хода игрока"""
+        """Обработка хода игрока.
+        
+        Проверяет валидность хода, выбрасывает карту на стол и обновляет состояние игры.
+        
+        Args:
+            player_index: Индекс игрока, делающего ход
+            card_index: Индекс карты в руке игрока
+            
+        Returns:
+            tuple: (status, player, card) - новый код состояния,
+                   игрок, сделавший ход и сыгранная карта
+                   
+        Raises:
+            InvalidPlayerAction: Если ход недопустим
+        """
         player = self.state.players[player_index]
         
         # Проверяем, что ход делает правильный игрок
@@ -236,6 +376,10 @@ class GameEngine:
         # Проверяем, что у игрока есть карты
         if len(player.hand) == 0:
             raise InvalidPlayerAction("У Вас нет больше карт!")
+        
+        # Проверяем, что у игрока есть эта карта
+        if len(player.hand) <= card_index:
+            raise InvalidPlayerAction("У вас нет такой карты!")
         
         # Проверяем, что сделали меньше 9-ти ходов
         if self.state.current_turn >= 10:
@@ -249,52 +393,97 @@ class GameEngine:
         if len(self.state.current_table) == 3:
             self.state.set_current_turn()
         
+        # Проверяем, соответствует ли ход правилам игры
+        # TODO: раскомментировать для включения проверки правил
+        # if not self.validate_card_play(player_index, card_index):
+        #     raise InvalidPlayerAction("Недопустимый ход! Вы должны ходить в масть или козырем.")
+        
         # Играем карту
         card = player.play_card(card_index)
         self.state.put_card(player_index, card)
         card_count = len(self.state.current_table)
-        self.state.set_status_code(300 + card_count)
+        
+        # Устанавливаем новый статус в зависимости от количества карт на столе
+        if card_count == 1:
+            self.state.set_status(GameConstants.Status.PLAYED_CARD_1)
+        elif card_count == 2:
+            self.state.set_status(GameConstants.Status.PLAYED_CARD_2)
+        elif card_count == 3:
+            self.state.set_status(GameConstants.Status.PLAYED_CARD_3)
+        elif card_count == 4:
+            self.state.set_status(GameConstants.Status.TRICK_COMPLETED)
 
-        if 300 < self.state.status_code < 304:
-            next_player_index = self.PLAYERS_QUEUE[self.state.current_player_index]
+        if GameConstants.Status.PLAYING_CARDS.value < self.state.status.value < GameConstants.Status.TRICK_COMPLETED.value:
+            next_player_index = GameConstants.PLAYERS_QUEUE[self.state.current_player_index]
             self.state.set_current_player_index(next_player_index)
 
-        return self.state.status_code, player, card
+        return self.state.status, player, card
+    
+    def calculate_card_power(self, card: Card, first_suit: str, trump: str) -> tuple:
+        """Рассчитывает силу карты по правилам игры Шама.
+        
+        Иерархия карт (от сильнейшей к слабейшей):
+        1. Шестерка треф (шама)
+        2. Валеты (в порядке: ♣ > ♠ > ♥ > ♦)
+        3. Козырные карты (кроме валетов и шамы)
+        4. Карты масти первого хода
+        5. Все остальные карты
+            
+        Args:
+            card: Карта, силу которой нужно определить
+            first_suit: Масть первой карты в коне
+            trump: Текущий козырь
+            
+        Returns:
+            tuple: (приоритет_группы, приоритет_внутри_группы)
+                  для сравнения карт между собой
+        """
+        # Шестерка треф - самая сильная карта в игре
+        if card.suit == GameConstants.CLUBS and card.rank == '6':
+            return (4, 0)  # Максимальный приоритет
+        
+        # Валеты (всегда козыри, независимо от козырной масти)
+        if card.rank == 'J':
+            # Порядок валетов: ♣ > ♠ > ♥ > ♦
+            return (3, GameConstants.SUIT_ORDER.get(card.suit, 0))
+        
+        # Козырные карты (кроме валетов и шестерки треф)
+        if card.suit == trump:
+            # Порядок козырных: A > 10 > K > Q > 9 > 8 > 7 > 6
+            return (2, GameConstants.RANK_ORDER.get(card.rank, 0))
+        
+        # Карты масти первого хода
+        if card.suit == first_suit:
+            return (1, GameConstants.RANK_ORDER.get(card.rank, 0))
+        
+        # Остальные карты (младше всех)
+        return (0, 0)
     
     def complete_turn(self):
-        # Функция для определения силы карты
-        def card_power(card):
-            # Шестерка треф - самая сильная
-            if card.suit == 'clubs' and card.rank == '6':
-                return (4, 0)  # Максимальный приоритет
-            
-            # Валеты (всегда козыри)
-            if card.rank == 'J':
-                # Порядок валетов: ♣ > ♠ > ♥ > ♦
-                suit_order = {'clubs': 3, 'spades': 2, 'hearts': 1, 'diamonds': 0}
-                return (3, suit_order.get(card.suit, 0))
-            
-            # Козырные карты (кроме валетов и шестерки треф)
-            if card.suit == trump:
-                # Порядок козырных: A > 10 > K > Q > 9 > 8 > 7 > 6
-                rank_order = {'A': 7, '10': 6, 'K': 5, 'Q': 4, '9': 3, '8': 2, '7': 1, '6': 0}
-                return (2, rank_order.get(card.rank, 0))
-            
-            # Карты масти первого хода
-            if card.suit == first_suit:
-                rank_order = {'A': 7, '10': 6, 'K': 5, 'Q': 4, '9': 3, '8': 2, '7': 1, '6': 0}
-                return (1, rank_order.get(card.rank, 0))
-            
-            # Остальные карты (младше всех)
-            return (0, 0)
+        """Завершение кона и определение победителя.
+        
+        Определяет победителя взятки, подсчитывает очки за взятку,
+        обновляет состояние игры и подготавливает к следующему кону.
+        
+        Returns:
+            tuple: (status, winning_card, winning_player_index, trick_points)
+                  - новый код состояния, выигрышная карта, 
+                  индекс игрока-победителя и очки за взятку
+                  
+        Raises:
+            IndexError: Если на столе меньше 4 карт
+        """
              
         # Проверяем завершение кона (4 хода)
-        if self.state.status_code == 304:
+        if self.state.status == GameConstants.Status.TRICK_COMPLETED:
             # Определяем победителя взятки по правилам Шамы
             first_suit = self.state.current_table[0]['card'].suit
             trump = self.state.trump
             # Находим карту с максимальной силой
-            strongest_card = max(self.state.current_table, key=lambda x: card_power(x['card']))
+            strongest_card = max(
+                self.state.current_table, 
+                key=lambda x: self.calculate_card_power(x['card'], first_suit, trump)
+            )
             winning_player_index = strongest_card['player_index']
             winning_card = strongest_card['card']
             winning_team_index = winning_player_index // 10 * 10
@@ -308,12 +497,12 @@ class GameEngine:
             self.state.show_table()
             self.state.clear_table()
             if self.state.current_turn <= 9:
-                self.state.set_status_code(300)
+                self.state.set_status(GameConstants.Status.PLAYING_CARDS)
             else:
-                self.state.set_status_code(409)
-            return self.state.status_code, winning_card, winning_player_index, trick_points
+                self.state.set_status(GameConstants.Status.GAME_COMPLETED)
+            return self.state.status, winning_card, winning_player_index, trick_points
         else:
-            raise IndexError("На столе меньше 4х карт (satus_code != 304)")
+            raise IndexError("На столе меньше 4х карт")
         
     def complete_game(self):
         """ Подсчет очков и определение победителя"""
@@ -357,15 +546,15 @@ class GameEngine:
             self.state.increase_score(losed_team, losed_points, 'match')
             self.state.clear_score('game')
             if self.state.match_scores[losed_team] < 12:
-                self.state.set_status_code(500)
+                self.state.set_status(GameConstants.Status.NEW_DEAL_READY)
                 self.state.set_current_turn(1)
             else:
-                self.state.set_status_code(600)
-            return self.state.status_code, scores, losed_team, losed_points
+                self.state.set_status(GameConstants.Status.MATCH_COMPLETED)
+            return self.state.status, scores, losed_team, losed_points
         
     def complete_match(self):  
-        self.state.set_status_code(700)
-        return self.state.status_code
+        self.state.set_status(GameConstants.Status.GAME_FINISHED)
+        return self.state.status
     
 # Пример использования
 if __name__ == "__main__":

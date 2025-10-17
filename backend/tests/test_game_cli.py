@@ -9,6 +9,7 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')
 
 import game_cli
 from core import MatchState, GameEngine, Player, Card
+from game_constants import GameConstants
 
 class TestGameCLI(unittest.TestCase):
     
@@ -98,6 +99,7 @@ class TestGameCLI(unittest.TestCase):
         state = self.state
         state.trump = 'hearts'
         state.first_player_index = 11
+        state.current_player_index = 11
         state.current_turn = 3
         state.match_scores = {10: 5, 20: 7}
         
@@ -116,15 +118,14 @@ class TestGameCLI(unittest.TestCase):
     @patch('builtins.input', side_effect=['Player A', 'Player B', 'Player C', 'Player D'])
     def test_create_match(self, mock_input):
         """Тест создания нового матча"""
-        status_code, state, message = game_cli.create_match()
+        status, state = game_cli.create_match()
         
         # Проверяем результаты
-        self.assertEqual(status_code, 104)  # Все 4 игрока добавлены
+        self.assertEqual(status, GameConstants.Status.PLAYERS_ADDED)  # Все 4 игрока добавлены
         self.assertEqual(state.players[11].name, 'Player A')
         self.assertEqual(state.players[12].name, 'Player B')
         self.assertEqual(state.players[21].name, 'Player C')
         self.assertEqual(state.players[22].name, 'Player D')
-        self.assertEqual(message, 'Good')
         
     @patch('builtins.print')
     @patch('builtins.input', return_value='3')  # Выбор пункта "Выход"
@@ -148,23 +149,23 @@ class TestGameCLI(unittest.TestCase):
         
     @patch('builtins.print')
     @patch('game_cli.show_menu', return_value=1)  # Выбор "Новая игра"
-    @patch('game_cli.create_match', return_value=(104, MagicMock(), "Good"))
+    @patch('game_cli.create_match', return_value=(GameConstants.Status.PLAYERS_ADDED, MagicMock()))
     @patch('builtins.input', return_value='m')  # Выбор "Вернуться в меню"
     def test_main_new_game_then_menu(self, mock_input, mock_create_match, mock_show_menu, mock_print):
         """Тест создания новой игры и возврата в меню"""
         # Создаем заглушку для состояния игры
         mock_state = MagicMock()
-        mock_state.status_code = 104
+        mock_state.status = GameConstants.Status.PLAYERS_ADDED
         mock_state.players = {11: Player(1, 'P1'), 12: Player(2, 'P2'), 
                              21: Player(3, 'P3'), 22: Player(4, 'P4')}
         
         # Обновляем возвращаемое значение create_match
-        mock_create_match.return_value = (104, mock_state, "Good")
+        mock_create_match.return_value = (GameConstants.Status.PLAYERS_ADDED, mock_state)
         
         status_code, state = game_cli.main(0, None)
         
         # Проверяем, что игра была создана и статус изменен
-        self.assertEqual(status_code, 104)  # Выход в меню устанавливает статус 700
+        self.assertEqual(status_code, 104)
         
     @patch('builtins.print')
     @patch('game_cli.show_state')

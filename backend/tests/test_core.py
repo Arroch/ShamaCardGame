@@ -8,6 +8,7 @@ from unittest.mock import patch, MagicMock
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 from core import Card, Player, MatchState, GameEngine, InvalidPlayerAction
+from game_constants import GameConstants
 
 class TestCard(unittest.TestCase):
     def test_card_creation(self):
@@ -22,10 +23,10 @@ class TestCard(unittest.TestCase):
         
     def test_card_symbols(self):
         """Проверка корректного отображения символов мастей"""
-        self.assertEqual(Card.SUIT_SYMBOLS['hearts'], '♥')
-        self.assertEqual(Card.SUIT_SYMBOLS['diamonds'], '♦')
-        self.assertEqual(Card.SUIT_SYMBOLS['clubs'], '♣')
-        self.assertEqual(Card.SUIT_SYMBOLS['spades'], '♠')
+        self.assertEqual(GameConstants.SUIT_SYMBOLS['hearts'], '♥')
+        self.assertEqual(GameConstants.SUIT_SYMBOLS['diamonds'], '♦')
+        self.assertEqual(GameConstants.SUIT_SYMBOLS['clubs'], '♣')
+        self.assertEqual(GameConstants.SUIT_SYMBOLS['spades'], '♠')
 
 class TestPlayer(unittest.TestCase):
     def setUp(self):
@@ -81,7 +82,7 @@ class TestMatchState(unittest.TestCase):
         
     def test_match_state_init(self):
         """Тест инициализации состояния матча"""
-        self.assertEqual(self.state.status_code, 100)
+        self.assertEqual(self.state.status, GameConstants.Status.WAITING_PLAYERS)
         self.assertEqual(self.state.match_scores, {10: 0, 20: 0})
         self.assertEqual(self.state.game_scores, {10: 0, 20: 0})
         self.assertEqual(self.state.first_player_index, 0)
@@ -89,8 +90,8 @@ class TestMatchState(unittest.TestCase):
         
     def test_set_status_code(self):
         """Тест установки кода состояния"""
-        self.state.set_status_code(200)
-        self.assertEqual(self.state.status_code, 200)
+        self.state.set_status(GameConstants.Status.CARDS_DEALT)
+        self.assertEqual(self.state.status, GameConstants.Status.CARDS_DEALT)
         
     def test_set_current_player_index(self):
         """Тест установки индекса текущего игрока"""
@@ -111,13 +112,14 @@ class TestMatchState(unittest.TestCase):
         """Тест установки козыря"""
         self.state.set_trump('hearts')
         self.assertEqual(self.state.trump, 'hearts')
-        self.assertEqual(self.state.status_code, 203)
+        self.assertEqual(self.state.status, GameConstants.Status.TRUMP_SELECTED)
         
     def test_add_player(self):
         """Тест добавления игрока"""
         player = Player(1, 'Test Player')
-        status = self.state.add_player(11, player)
-        self.assertEqual(status, 101)
+        self.state.add_player(11, player)
+        self.assertEqual(self.state.status, GameConstants.Status.WAITING_PLAYERS)
+        self.assertEqual(sum(1 for p in self.state.players.values() if p is not None), 1)
         self.assertEqual(self.state.players[11], player)
         
     def test_add_player_when_full(self):
@@ -249,10 +251,9 @@ class TestGameEngine(unittest.TestCase):
         """Тест начала игры"""
         # Подготовим состояние, чтобы шама была у определенного игрока
         self.state.first_player_index = 11
-        status, player = self.engine.start_game()
+        status = self.engine.start_game()
         
-        self.assertEqual(status, 202)
-        self.assertEqual(player, self.state.players[11])
+        self.assertEqual(status, GameConstants.Status.WAITING_TRUMP)
         self.assertEqual(self.state.current_player_index, 11)
         
     def test_start_game_no_shama(self):
@@ -269,11 +270,11 @@ class TestGameEngine(unittest.TestCase):
         # Подготовим состояние
         self.state.first_player_index = 11
         self.state.current_player_index = 11
-        self.state.status_code = 202
+        self.state.status = GameConstants.Status.WAITING_TRUMP
         
         status, player_name, trump = self.engine.set_trump_by_player(11, 'hearts')
         
-        self.assertEqual(status, 203)
+        self.assertEqual(status, GameConstants.Status.TRUMP_SELECTED)
         self.assertEqual(player_name, self.state.players[11].name)
         self.assertEqual(trump, 'hearts')
         
@@ -296,7 +297,7 @@ class TestGameEngine(unittest.TestCase):
     def test_play_turn(self):
         """Тест хода игрока"""
         # Подготовим состояние
-        self.state.status_code = 203
+        self.state.status = GameConstants.Status.TRUMP_SELECTED
         self.state.current_player_index = 11
         self.state.trump = 'hearts'
         
@@ -306,7 +307,7 @@ class TestGameEngine(unittest.TestCase):
         
         status, player, played_card = self.engine.play_turn(11, 0)
         
-        self.assertEqual(status, 301)  # 300 + 1 (одна карта на столе)
+        self.assertEqual(status, GameConstants.Status.PLAYED_CARD_1)  # 300 + 1 (одна карта на столе)
         self.assertEqual(player, self.state.players[11])
         self.assertEqual(played_card, card)
         self.assertEqual(self.state.current_player_index, 21)  # Следующий игрок
@@ -314,7 +315,7 @@ class TestGameEngine(unittest.TestCase):
     def test_play_turn_wrong_player(self):
         """Тест хода не тем игроком"""
         # Подготовим состояние
-        self.state.status_code = 203
+        self.state.status = GameConstants.Status.TRUMP_SELECTED
         self.state.current_player_index = 11
         
         with self.assertRaises(InvalidPlayerAction):
@@ -323,7 +324,7 @@ class TestGameEngine(unittest.TestCase):
     def test_play_turn_no_cards(self):
         """Тест хода, когда у игрока нет карт"""
         # Подготовим состояние
-        self.state.status_code = 203
+        self.state.status = GameConstants.Status.TRUMP_SELECTED
         self.state.current_player_index = 11
         
         with self.assertRaises(InvalidPlayerAction):
@@ -332,7 +333,7 @@ class TestGameEngine(unittest.TestCase):
     def test_play_turn_too_many_turns(self):
         """Тест хода, когда уже сделано 9 ходов"""
         # Подготовим состояние
-        self.state.status_code = 203
+        self.state.status = GameConstants.Status.TRUMP_SELECTED
         self.state.current_player_index = 11
         self.state.current_turn = 10
         
@@ -345,7 +346,7 @@ class TestGameEngine(unittest.TestCase):
     def test_play_turn_table_full(self):
         """Тест хода, когда на столе уже 4 карты"""
         # Подготовим состояние
-        self.state.status_code = 203
+        self.state.status = GameConstants.Status.TRUMP_SELECTED
         self.state.current_player_index = 11
         
         # Заполним стол
@@ -362,7 +363,7 @@ class TestGameEngine(unittest.TestCase):
     def test_complete_turn(self, mock_print):
         """Тест завершения кона"""
         # Подготовим состояние
-        self.state.status_code = 304  # 4 карты на столе
+        self.state.status = GameConstants.Status.TRICK_COMPLETED  # 4 карты на столе
         self.state.trump = 'hearts'
         
         # Добавим карты на стол
@@ -373,7 +374,7 @@ class TestGameEngine(unittest.TestCase):
         
         status, winning_card, winning_player_index, trick_points = self.engine.complete_turn()
         
-        self.assertEqual(status, 300)  # Готов к новому кону
+        self.assertEqual(status, GameConstants.Status.PLAYING_CARDS)  # Готов к новому кону
         self.assertEqual(winning_card.suit, 'hearts')  # Козырь победил
         self.assertEqual(winning_card.rank, '7')
         self.assertEqual(winning_player_index, 12)
@@ -384,7 +385,7 @@ class TestGameEngine(unittest.TestCase):
     def test_complete_turn_table_not_full(self):
         """Тест завершения кона, когда на столе меньше 4 карт"""
         # Подготовим состояние
-        self.state.status_code = 303  # 3 карты на столе
+        self.state.status = GameConstants.Status.PLAYED_CARD_3
         
         with self.assertRaises(IndexError):
             self.engine.complete_turn()
@@ -398,7 +399,7 @@ class TestGameEngine(unittest.TestCase):
         
         status, scores, losed_team, losed_points = self.engine.complete_game()
         
-        self.assertEqual(status, 500)  # Готов к новой раздаче
+        self.assertEqual(status, GameConstants.Status.NEW_DEAL_READY)  # Готов к новой раздаче
         self.assertEqual(scores, {10: 20, 20: 30})
         self.assertEqual(losed_team, 10)  # Проигравшая команда
         self.assertEqual(losed_points, 6)  # Очки за проигрыш (меньше 30 очков, с шамой)
@@ -409,8 +410,8 @@ class TestGameEngine(unittest.TestCase):
     def test_complete_match(self):
         """Тест завершения матча"""
         status = self.engine.complete_match()
-        self.assertEqual(status, 700)
-        self.assertEqual(self.state.status_code, 700)
+        self.assertEqual(status, GameConstants.Status.GAME_FINISHED)
+        self.assertEqual(self.state.status, GameConstants.Status.GAME_FINISHED)
         
     def test_full_game_cycle(self):
         """Тест полного цикла игры до достижения одной из команд 12 очков"""
@@ -421,7 +422,7 @@ class TestGameEngine(unittest.TestCase):
         while max(self.state.match_scores.values()) < 12:
             # Начало игры
             self.engine.deal_cards()
-            status, player = self.engine.start_game()
+            status = self.engine.start_game()
             # Установка козыря
             self.engine.set_trump_by_player(self.state.first_player_index, 'clubs')
 
@@ -444,8 +445,8 @@ class TestGameEngine(unittest.TestCase):
             if max(self.state.match_scores.values()) >= 12:
                 self.engine.complete_match()
 
-        # Проверяем состояние игры: status_code должен быть 700 (игра завершена)
-        self.assertEqual(self.state.status_code, 700)
+        # Проверяем состояние игры: status_ должен быть 700 (игра завершена)
+        self.assertEqual(self.state.status, GameConstants.Status.GAME_FINISHED)
         # Проверяем, что одна из команд набрала 12 или более очков
         self.assertTrue(max(self.state.match_scores.values()) >= 12)
 
