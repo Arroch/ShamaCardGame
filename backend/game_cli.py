@@ -345,10 +345,11 @@ def main(status_code, state):
             
             # Завершение матча, если одна из команд набрала 12+ очков
             if status == GameConstants.Status.MATCH_COMPLETED:
-                status_code = engine.complete_match()
+                status = engine.complete_match()
                 print(f"""Игра закончилась!
     {state.players[losing_team + 1]} и {state.players[losing_team + 2]} - проиграли(
     Счет: {state.match_scores[GameConstants.TEAM_1]}-{state.match_scores[GameConstants.TEAM_2]}\n""")
+                return state.status.value, state
         
         elif input_command in ('m',):  # Вернуться в меню
             state.set_status(GameConstants.Status.GAME_FINISHED)
