@@ -17,16 +17,14 @@
 - Внутриигровые покупки
 
 ## Технологический стек
-- **Фронтенд**: React, TypeScript, Vite
-- **Бэкенд**: Python (FastAPI), WebSockets
+- **Бэкенд**: Python
 - **База данных**: PostgreSQL
-- **Инфраструктура**: Docker, Nginx
 
 ## Быстрый старт
 1. Клонируйте репозиторий:
 ```bash
 git clone https://github.com/Arroch/ShamaCardGame
-cd shama-game
+cd ShamaCardGame
 ```
 
 2. Запустите проект (инструкции будут дополнены):
