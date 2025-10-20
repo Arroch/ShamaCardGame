@@ -71,13 +71,8 @@ class Player:
         return self.hand.pop(card_index)
     
     def sort_hand(self, trump=None):
-        """
-        HEARTS: '',
-        DIAMONDS: '',
-        CLUBS: '',
-        SPADES: ''
+        """Соритирует карты по убыванию силы, после козыря одномастные стоят рядом
         6♣, J♣,  J♠, J♥, J♦, A/10/K/Q♣, A/10/K/Q♠, A/10/K/Q♥, A/10/K/Q♦
-        (3, 0, 0), (2, SUIT_ORDER, 0), (int(is_trump), SUIT_ORDER, RANK_ORDER)
         """
         self.hand.sort(reverse=True, key=lambda item: item.get_order(trump))
 
