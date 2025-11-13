@@ -62,14 +62,14 @@ class FileStorage:
         if not os.path.exists(self.players_file):
             with open(self.players_file, 'w', newline='', encoding='utf-8') as f:
                 writer = csv.writer(f)
-                writer.writerow(['id', 'tg_id', 'name', 'games', 'wins', 
+                writer.writerow(['id', 'username', 'name', 'games', 'wins', 
                                 'total_tricks', 'total_shama_calls', 'created_at'])
         
         # Матчи
         if not os.path.exists(self.matches_file):
             with open(self.matches_file, 'w', newline='', encoding='utf-8') as f:
                 writer = csv.writer(f)
-                writer.writerow(['id', 'start_time', 'end_time', 'player_11', 'player_12', 
+                writer.writerow(['match_id', 'start_time', 'end_time', 'player_11', 'player_12', 
                                 'player_21', 'player_22', 'winning_team', 'total_score_1', 
                                 'total_score_2'])
         
@@ -77,14 +77,14 @@ class FileStorage:
         if not os.path.exists(self.games_file):
             with open(self.games_file, 'w', newline='', encoding='utf-8') as f:
                 writer = csv.writer(f)
-                writer.writerow(['id', 'match_id', 'trump', 'shama_player', 
+                writer.writerow(['match_id', 'game_id', 'trump', 'shama_player', 
                                 'hand_11', 'hand_12', 'hand_21', 'hand_22', 'created_at'])
         
         # Ходы
         if not os.path.exists(self.turns_file):
             with open(self.turns_file, 'w', newline='', encoding='utf-8') as f:
                 writer = csv.writer(f)
-                writer.writerow(['id', 'game_id', 'match_id', 'first_player', 
+                writer.writerow(['match_id', 'game_id', 'turn_id', 'first_player', 
                                 'card_11', 'card_12', 'card_21', 'card_22', 
                                 'loot_value', 'looting_team', 'created_at'])
     
@@ -92,108 +92,73 @@ class FileStorage:
         """Инициализирует хранилище данных."""
         logger.info("Файловое хранилище инициализировано")
     
-    async def get_player_by_tg_id(self, tg_id: int) -> Optional[Dict[str, Any]]:
-        """
-        Получает информацию об игроке по его Telegram ID.
-        
-        :param tg_id: Telegram ID игрока
-        :return: Информация об игроке или None, если игрок не найден
-        """
-        try:
-            with open(self.players_file, 'r', newline='', encoding='utf-8') as f:
-                reader = csv.DictReader(f)
-                for row in reader:
-                    if int(row['tg_id']) == tg_id:
-                        # Конвертируем строковые значения в числа
-                        row['id'] = int(row['id'])
-                        row['tg_id'] = int(row['tg_id'])
-                        row['games'] = int(row['games'])
-                        row['wins'] = int(row['wins'])
-                        row['total_tricks'] = int(row['total_tricks'])
-                        row['total_shama_calls'] = int(row['total_shama_calls'])
-                        return row
-            return None
-        except Exception as e:
-            logger.error(f"Ошибка при получении информации об игроке: {e}")
-            return None
-    
-    async def create_player(self, tg_id: int, name: str) -> Optional[int]:
+    async def create_player(self, tg_id: int, tg_username: str, tg_first_name: str) -> Optional[Dict[str, Any]]:
         """
         Создает нового игрока в хранилище.
         
         :param tg_id: Telegram ID игрока
         :param name: Имя игрока
-        :return: ID игрока или None в случае ошибки
         """
+        p = {
+            'id': tg_id,
+            'username': tg_username,
+            'name': tg_first_name,
+            'games': 0,
+            'wins': 0,
+            'total_tricks': 0,
+            'total_shama_calls': 0,
+            'created_at': datetime.datetime.now().isoformat()
+        }
+
         try:
-            # Получаем все существующие ID игроков
-            player_ids = []
-            try:
-                with open(self.players_file, 'r', newline='', encoding='utf-8') as f:
-                    reader = csv.DictReader(f)
-                    for row in reader:
-                        player_ids.append(int(row['id']))
-            except FileNotFoundError:
-                pass
-            
-            # Генерируем новый ID
-            new_id = 1 if not player_ids else max(player_ids) + 1
-            
             # Добавляем игрока в файл
             with open(self.players_file, 'a', newline='', encoding='utf-8') as f:
                 writer = csv.writer(f)
-                writer.writerow([new_id, tg_id, name, 0, 0, 0, 0, 
-                                datetime.datetime.now().isoformat()])
+                writer.writerow(list(p.values()))
             
-            logger.info(f"Создан новый игрок: {name} (ID: {new_id})")
-            return new_id
+            logger.info(f"Создан новый игрок: {tg_first_name} (ID: {tg_id} username: {tg_username})")
+            return p
         except Exception as e:
             logger.error(f"Ошибка при создании игрока: {e}")
             return None
     
-    async def get_or_create_player(self, tg_id: int, name: str) -> Optional[Dict[str, Any]]:
+    async def get_or_create_player(self, id: int, username: str, first_name: str) -> Optional[Dict[str, Any]]:
         """
-        Получает информацию об игроке или создает нового, если не существует.
+        Получает информацию об игроке.
         
-        :param tg_id: Telegram ID игрока
-        :param name: Имя игрока
+        :param id: ID игрока = Telegram ID
         :return: Информация об игроке или None в случае ошибки
         """
-        player = await self.get_player_by_tg_id(tg_id)
-        if player:
-            return player
-        
-        player_id = await self.create_player(tg_id, name)
-        if player_id:
-            return await self.get_player_by_tg_id(tg_id)
-        return None
+        try:
+            with open(self.players_file, 'r', newline='', encoding='utf-8') as f:
+                reader = csv.DictReader(f)
+                for row in reader:
+                    if int(row['id']) == id:
+                        # Конвертируем строковые значения в числа
+                        row['id'] = int(row['id'])
+                        row['games'] = int(row['games'])
+                        row['wins'] = int(row['wins'])
+                        row['total_tricks'] = int(row['total_tricks'])
+                        row['total_shama_calls'] = int(row['total_shama_calls'])
+                        return row
+            return await self.create_player(id, username, first_name)
+        except Exception as e:
+            logger.error(f"Ошибка при получении информации об игроке: {e}")
+            return None
     
-    async def create_match(self, player_ids: Dict[int, int]) -> Optional[int]:
+    async def create_match(self, match_id: int, player_ids: Dict[int, int]) -> Optional[int]:
         """
         Создает новый матч в хранилище.
         
+        :param match_id: уникальный ID матча
         :param player_ids: Словарь {позиция игрока: ID игрока в хранилище}
-        :return: ID матча или None в случае ошибки
         """
         try:
-            # Получаем все существующие ID матчей
-            match_ids = []
-            try:
-                with open(self.matches_file, 'r', newline='', encoding='utf-8') as f:
-                    reader = csv.DictReader(f)
-                    for row in reader:
-                        match_ids.append(int(row['id']))
-            except FileNotFoundError:
-                pass
-            
-            # Генерируем новый ID
-            new_id = 1 if not match_ids else max(match_ids) + 1
-            
             # Добавляем матч в файл
             with open(self.matches_file, 'a', newline='', encoding='utf-8') as f:
                 writer = csv.writer(f)
                 writer.writerow([
-                    new_id, 
+                    match_id, 
                     datetime.datetime.now().isoformat(),
                     '',  # end_time
                     player_ids.get(11, ''),
@@ -205,37 +170,22 @@ class FileStorage:
                     0    # total_score_2
                 ])
             
-            logger.info(f"Создан новый матч (ID: {new_id})")
-            return new_id
+            logger.info(f"Создан новый матч (ID: {match_id})")
         except Exception as e:
             logger.error(f"Ошибка при создании матча: {e}")
-            return None
     
-    async def create_game(self, match_id: int, trump: str, shama_player: int,
+    async def create_game(self, match_id: int, game_id: int, trump: str, shama_player: int,
                    hands: Dict[int, List[Dict[str, str]]]) -> Optional[int]:
         """
         Создает новую раздачу в хранилище.
         
         :param match_id: ID матча
+        :param game_id: ID раздачи
         :param trump: Козырь
         :param shama_player: Позиция игрока с шамой
         :param hands: Словарь {позиция игрока: список карт}
-        :return: ID раздачи или None в случае ошибки
         """
         try:
-            # Получаем все существующие ID игр
-            game_ids = []
-            try:
-                with open(self.games_file, 'r', newline='', encoding='utf-8') as f:
-                    reader = csv.DictReader(f)
-                    for row in reader:
-                        game_ids.append(int(row['id']))
-            except FileNotFoundError:
-                pass
-            
-            # Генерируем новый ID
-            new_id = 1 if not game_ids else max(game_ids) + 1
-            
             # Преобразуем руки в JSON строки
             hand_11 = json.dumps(hands.get(11, []))
             hand_12 = json.dumps(hands.get(12, []))
@@ -246,7 +196,7 @@ class FileStorage:
             with open(self.games_file, 'a', newline='', encoding='utf-8') as f:
                 writer = csv.writer(f)
                 writer.writerow([
-                    new_id, 
+                    game_id, 
                     match_id,
                     trump,
                     shama_player,
@@ -257,46 +207,31 @@ class FileStorage:
                     datetime.datetime.now().isoformat()
                 ])
             
-            logger.info(f"Создана новая раздача (ID: {new_id}) в матче {match_id}")
-            return new_id
+            logger.info(f"Создана новая раздача (ID: {game_id}) в матче {match_id}")
         except Exception as e:
             logger.error(f"Ошибка при создании раздачи: {e}")
-            return None
     
-    async def create_turn(self, game_id: int, match_id: int, first_player: int,
+    async def create_turn(self, match_id: int, game_id: int, turn_id: int, first_player: int,
                    cards: Dict[int, str], loot_value: int, looting_team: int) -> Optional[int]:
         """
         Сохраняет ход в хранилище.
         
-        :param game_id: ID раздачи
         :param match_id: ID матча
+        :param game_id: ID раздачи
+        :param turn_id: ID хода
         :param first_player: Позиция игрока, который ходил первым
         :param cards: Словарь {позиция игрока: карта}
         :param loot_value: Стоимость взятки
         :param looting_team: Команда, забравшая взятку
-        :return: ID хода или None в случае ошибки
         """
         try:
-            # Получаем все существующие ID ходов
-            turn_ids = []
-            try:
-                with open(self.turns_file, 'r', newline='', encoding='utf-8') as f:
-                    reader = csv.DictReader(f)
-                    for row in reader:
-                        turn_ids.append(int(row['id']))
-            except FileNotFoundError:
-                pass
-            
-            # Генерируем новый ID
-            new_id = 1 if not turn_ids else max(turn_ids) + 1
-            
             # Добавляем ход в файл
             with open(self.turns_file, 'a', newline='', encoding='utf-8') as f:
                 writer = csv.writer(f)
                 writer.writerow([
-                    new_id,
-                    game_id,
                     match_id,
+                    game_id,
+                    turn_id,
                     first_player,
                     cards.get(11, ''),
                     cards.get(12, ''),
@@ -307,11 +242,9 @@ class FileStorage:
                     datetime.datetime.now().isoformat()
                 ])
             
-            logger.info(f"Сохранен ход (ID: {new_id}) в раздаче {game_id}")
-            return new_id
+            logger.info(f"Сохранен ход (ID: {turn_id}) в раздаче {game_id} в матче {match_id}")
         except Exception as e:
             logger.error(f"Ошибка при сохранении хода: {e}")
-            return None
     
     async def update_match(self, match_id: int, winning_team: int, team1_score: int, team2_score: int) -> bool:
         """
@@ -333,7 +266,7 @@ class FileStorage:
             
             # Обновляем информацию о матче
             for match in matches:
-                if int(match['id']) == match_id:
+                if match['match_id'] == match_id:
                     match['end_time'] = datetime.datetime.now().isoformat()
                     match['winning_team'] = winning_team
                     match['total_score_1'] = team1_score
@@ -389,7 +322,39 @@ class FileStorage:
             logger.error(f"Ошибка при обновлении статистики игрока: {e}")
             return False
     
-    async def log_event(self, tg_id: Optional[int], event_type: str, event_data: Dict[str, Any]) -> Optional[int]:
+    async def get_player_stats(self, id: int) -> Optional[Dict[str, Any]]:
+        """
+        Получает расширенную статистику игрока.
+        
+        :param id: Telegram ID игрока
+        :return: Статистика игрока или None в случае ошибки
+        """
+        try:
+            player = await self.get_or_create_player(id, '', '')
+            if not player:
+                return None
+            
+            # Рассчитываем процент побед
+            games = int(player['games'])
+            wins = int(player['wins'])
+            win_rate = round(wins / games * 100, 2) if games > 0 else 0
+            
+            # Формируем статистику
+            stats = {
+                'name': player['name'],
+                'games': games,
+                'wins': wins,
+                'win_rate': win_rate,
+                'total_tricks': int(player['total_tricks']),
+                'total_shama_calls': int(player['total_shama_calls']),
+            }
+            
+            return stats
+        except Exception as e:
+            logger.error(f"Ошибка при получении статистики игрока: {e}")
+            return None
+    
+    async def log_event(self, player_id: Optional[int], player_username: str, event_type: str, event_data: Dict[str, Any]) -> Optional[int]:
         """
         Логирует событие в файл.
         
@@ -406,7 +371,8 @@ class FileStorage:
             # Создаем структуру события
             event = {
                 'id': event_id,
-                'tg_id': tg_id,
+                'player_id': player_id,
+                'player_username': player_username,
                 'timestamp': datetime.datetime.now().isoformat(),
                 'event_type': event_type,
                 'event_data': event_data
@@ -420,38 +386,6 @@ class FileStorage:
             return event_id
         except Exception as e:
             logger.error(f"Ошибка при логировании события: {e}")
-            return None
-    
-    async def get_player_stats(self, tg_id: int) -> Optional[Dict[str, Any]]:
-        """
-        Получает расширенную статистику игрока.
-        
-        :param tg_id: Telegram ID игрока
-        :return: Статистика игрока или None в случае ошибки
-        """
-        try:
-            player = await self.get_player_by_tg_id(tg_id)
-            if not player:
-                return None
-            
-            # Рассчитываем процент побед
-            games = int(player['games'])
-            wins = int(player['wins'])
-            win_rate = round(wins / games * 100, 1) if games > 0 else 0
-            
-            # Формируем статистику
-            stats = {
-                'name': player['name'],
-                'games': games,
-                'wins': wins,
-                'total_tricks': int(player['total_tricks']),
-                'total_shama_calls': int(player['total_shama_calls']),
-                'win_rate': win_rate
-            }
-            
-            return stats
-        except Exception as e:
-            logger.error(f"Ошибка при получении статистики игрока: {e}")
             return None
     
     def close(self):
