@@ -15,7 +15,7 @@ import psycopg2
 from psycopg2 import pool
 from psycopg2.extras import DictCursor, Json
 
-from game_constants import GameConstants
+from constants import GameConstants
 
 # Настройка логирования
 logging.basicConfig(

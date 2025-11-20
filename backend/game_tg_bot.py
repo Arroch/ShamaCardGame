@@ -1,6 +1,8 @@
 """
-Финальная версия Telegram бота для игры Шама.
-Исправлены все проблемы с конфликтами и циклами событий.
+TG bot для карточной игры "Шама".
+
+Предоставляет интерфейс для игры в карты "Шама" через сообщения телеграм.
+Поддерживает онлайн игру.
 
 Автор: ShamaVibe Team
 """
@@ -25,7 +27,7 @@ from dotenv import load_dotenv
 
 # Импорт модулей игры
 from core import GameEngine, MatchState, Player, GameException, InvalidPlayerAction
-from game_constants import GameConstants
+from constants import GameConstants
 from storage_factory import StorageFactory
 
 # Загружаем переменные окружения из .env файла
@@ -417,6 +419,8 @@ async def callback_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -
                             match_state,
                             f"🏆 Игра завершена!\n\n"
                             f"Результаты раздачи:\n"
+                            f"Козырь хвалил: "
+                            f"{match_state.players[match_state.first_player_index]}\n"
                             f"Команда 1: {match_state.players[GameConstants.PLAYER_1_1]} и "
                             f"{match_state.players[GameConstants.PLAYER_1_2]}: "
                             f"{scores[10]}\n"
@@ -566,15 +570,23 @@ async def callback_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -
     elif data.startswith('team_'):
         match_id = PLAYER_TO_GAME[player_id]['id']
         team = data.split('_')[1]
-        position = int(f"{data.split('_')[1]}{len(WAITING_MATCHES[match_id][data]) + 1}")
+        if len(WAITING_MATCHES[match_id][data]) < 2:
+            position = int(f"{team}{len(WAITING_MATCHES[match_id][data]) + 1}")
+            await query.edit_message_text(
+                text=f"{query.message.text}\n\nВы выбрали: Команду {team} ({WAITING_MATCHES[match_id][data]})",
+                reply_markup=None  # Удаляем клавиатуру после выбора
+            )
+        else:
+            team = 1 if team == 2 else 2
+            position = int(f"{team}{len(WAITING_MATCHES[match_id][f'team_{team}']) + 1}")
+            await query.edit_message_text(
+                text=f"{query.message.text}\n\nВыбранная комнда заполнена, добавили Вас в Команду {team} ({WAITING_MATCHES[match_id][f'team_{team}']})",
+                reply_markup=None  # Удаляем клавиатуру после выбора
+            )
+
         
         WAITING_MATCHES[match_id][data].append(f'{first_name} ({username})')
         PLAYER_TO_GAME[player_id]['position'] = position
-                    
-        await query.edit_message_text(
-            text=f"{query.message.text}\n\nВы выбрали: Команду {team} ({WAITING_MATCHES[match_id][data]})",
-            reply_markup=None  # Удаляем клавиатуру после выбора
-        )
 
         # Получаем обновленный список игроков
         players = WAITING_MATCHES[match_id]['players']
@@ -631,7 +643,8 @@ async def send_player_cards(player, match_state, is_first=False):
     else:
         if match_state.current_player_index and player.id == match_state.players[match_state.current_player_index].id:
             # Если сейчас ход этого игрока
-            message_text = (f"Статус игры:\n"
+            message_text = (f"🃏 Ваши карты:\n{cards_text}\n\n"
+                            f"Статус игры:\n"
                             f"{match_state.players[GameConstants.PLAYER_1_1]} и "
                             f"{match_state.players[GameConstants.PLAYER_1_2]} - счет: "
                             f"{match_state.match_scores[GameConstants.TEAM_1]}\n"

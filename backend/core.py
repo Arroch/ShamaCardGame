@@ -7,7 +7,7 @@
 Автор: ShamaVibe Team
 """
 
-from game_constants import GameConstants
+from constants import GameConstants
 
 class GameException(Exception):
     """Базовое исключение для игровых ошибок.

@@ -8,7 +8,7 @@
 """
 
 from core import MatchState, GameEngine, Player, Card, InvalidPlayerAction
-from game_constants import GameConstants
+from constants import GameConstants
 import os
 
 def show_rules():
