@@ -7,7 +7,7 @@
 Автор: ShamaVibe Team
 """
 
-from game_constants import GameConstants
+from constants import GameConstants
 
 class GameException(Exception):
     """Базовое исключение для игровых ошибок.
@@ -200,14 +200,7 @@ class MatchState:
             raise ValueError("Неверный тип счета")
         
     def show_table(self):
-        card_iter = iter(self.current_table)
-        while True:
-            try:
-                card = next(card_iter)
-                print(f"{card['player']}: {card['card']}", end=", ")
-            except StopIteration:
-                print()
-                break
+        return ', '.join([f"{card['player']}: {card['card']}" for card in self.current_table])
         
 class GameEngine:
     """Игровой движок, реализующий логику игры Шама.
@@ -491,8 +484,6 @@ class GameEngine:
             self.state.increase_score(winning_team_index, trick_points, 'game')
             
             self.state.current_player_index = winning_player_index
-            print(f"Карты на столе:", end=' ')
-            self.state.show_table()
             self.state.clear_table()
             if self.state.current_turn <= 9:
                 self.state.set_status(GameConstants.Status.PLAYING_CARDS)
@@ -522,25 +513,25 @@ class GameEngine:
             losed_team = 10 if scores[10] < scores[20] or scores[10] == 60 and shama_team == 10 else 20
             if shama_team == losed_team:
                 if scores[losed_team] == 0:
-                    game_results = scores, losed_team, 12
+                    game_results = scores, losed_team, 12, 'сразу 12 очков'
                 elif scores[losed_team] < 30:
-                    game_results = scores, losed_team, 6
+                    game_results = scores, losed_team, 6, 'шесть очков'
                 elif scores[losed_team] < 60:
-                    game_results = scores, losed_team, 3
+                    game_results = scores, losed_team, 3, 'три очка'
                 else:
-                    game_results = scores, losed_team, 2
+                    game_results = scores, losed_team, 2, 'два очка'
             else:
                 if scores[losed_team] == 0:
-                    game_results = scores, losed_team, 6
+                    game_results = scores, losed_team, 6, 'шесть очков'
                 elif scores[losed_team] < 30:
-                    game_results = scores, losed_team, 3
+                    game_results = scores, losed_team, 3, 'три очка'
                 else:
-                    game_results = scores, losed_team, 1
+                    game_results = scores, losed_team, 1, 'одно очко'
             return game_results
 
         # Проверка завершения игры (9 взяток)
         if self.state.current_turn > 9:
-            scores, losed_team, losed_points = get_points(self.state.first_player_index, self.state.game_scores.copy())
+            scores, losed_team, losed_points, losed_points_text = get_points(self.state.first_player_index, self.state.game_scores.copy())
             self.state.increase_score(losed_team, losed_points, 'match')
             self.state.clear_score('game')
             if self.state.match_scores[losed_team] < 12:
@@ -548,7 +539,7 @@ class GameEngine:
                 self.state.set_current_turn(1)
             else:
                 self.state.set_status(GameConstants.Status.MATCH_COMPLETED)
-            return self.state.status, scores, losed_team, losed_points
+            return self.state.status, scores, losed_team, losed_points, losed_points_text
         
     def complete_match(self):  
         self.state.set_status(GameConstants.Status.GAME_FINISHED)

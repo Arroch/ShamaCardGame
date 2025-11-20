@@ -44,3 +44,4 @@ Thumbs.db
 backend/test_scripts.ipynb
 backend/.pytest_cache
 backend/game_logs.json
+backend/storage

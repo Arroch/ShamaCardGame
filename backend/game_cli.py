@@ -8,7 +8,7 @@
 """
 
 from core import MatchState, GameEngine, Player, Card, InvalidPlayerAction
-from game_constants import GameConstants
+from constants import GameConstants
 import os
 
 def show_rules():
@@ -113,7 +113,7 @@ def show_state(state):
     print(f"Козырь: {GameConstants.SUIT_SYMBOLS[state.trump]}, хвалил {state.players[state.first_player_index]}")
     print(f"Номер хода: {state.current_turn}")
     print(f"Карты на столе:", end=' ')
-    state.show_table()
+    print(state.show_table())
     print(f"Сейчас ходит: {state.players[state.current_player_index]}", end=' ')
 
 def create_match():
@@ -329,13 +329,15 @@ def main(status_code, state):
                     
                 # Завершение кона
                 elif state.status == GameConstants.Status.TRICK_COMPLETED:
+                    print(f"Карты на столе:", end=' ')
+                    print(state.show_table())
                     status, winning_card, winning_player_index, trick_points = engine.complete_turn()
                     print(f"Взятку забрал игрок {state.players[winning_player_index]} "
                           f"картой {winning_card}! Начислили: {trick_points}")
                 
                 # Завершение игры
                 elif state.status == GameConstants.Status.GAME_COMPLETED:
-                    status, scores, losing_team, losing_points = engine.complete_game()
+                    status, scores, losing_team, losing_points, _ = engine.complete_game()
                     team1_players = f"{state.players[GameConstants.PLAYER_1_1]} и {state.players[GameConstants.PLAYER_1_2]}"
                     team2_players = f"{state.players[GameConstants.PLAYER_2_1]} и {state.players[GameConstants.PLAYER_2_2]}"
                     
