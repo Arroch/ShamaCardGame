@@ -13,7 +13,7 @@ import json
 import logging
 import uuid
 import datetime
-from typing import Dict, List, Optional, Any, Tuple
+from typing import Dict, List, Optional, Any
 
 # Настройка логирования
 logging.basicConfig(

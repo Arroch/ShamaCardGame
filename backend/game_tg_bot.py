@@ -12,10 +12,6 @@ import sys
 from datetime import datetime
 import logging
 import asyncio
-import re
-from typing import Dict, List, Optional, Any, Tuple
-import traceback
-import json
 
 from telegram import Bot, Update, InlineKeyboardMarkup, InlineKeyboardButton
 from telegram.ext import (
@@ -339,7 +335,6 @@ async def start_game(message, match_id, players):
         
     except Exception as e:
         logger.error(f"Ошибка при начале игры: {e}")
-        print(traceback.format_exc())
         await message.reply_text(f"Произошла ошибка при начале игры: {e}")
 
 async def callback_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:

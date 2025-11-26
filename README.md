@@ -12,62 +12,39 @@
 - Логирование всех действий
 - Поддержка нескольких одновременных игр
 
-## Установка и запуск
+## Структура проекта
+
+- `backend/core.py` - Ядро игрового движка
+- `backend/constants.py` - Константы игры
+- `backend/game_tg_bot.py` - Реализация Telegram бота
+- `backend/storage_factory.py` - Определение хранилища
+- `backend/database_manager.py` - Взаимодействие с базой данных
+- `backend/file_storage.py` - Взаимодействие с файловым хранилищем
+- `backend/tests/` - Тесты
+- `TECHNICAL_SPEC.md` - Техническое задание
+
+## Быстрый старт
 
 ### Предварительные требования
 
 - Python 3.8+
-- PostgreSQL
 - Telegram Bot API токен
-
-### Настройка хранилища данных
-
-Бот поддерживает два типа хранилища данных:
-1. **Файловое хранилище** (по умолчанию) - данные хранятся в CSV-файлах в локальной директории
-2. **PostgreSQL** - данные хранятся в базе данных PostgreSQL
-
-#### Настройка файлового хранилища
-
-По умолчанию файлы хранятся в директории `backend/storage`. Для изменения пути хранения:
-
-```bash
-# Опционально: указать другую директорию для хранения файлов
-export STORAGE_DIR=/путь/к/директории/хранения
-```
-
-#### Настройка PostgreSQL
-
-1. Создайте базу данных в PostgreSQL:
-
-```sql
-CREATE DATABASE shama_game;
-```
-
-2. Установите переменные окружения для доступа к базе данных:
-
-```bash
-export STORAGE_TYPE=postgres
-export DB_HOST=localhost
-export DB_PORT=5432
-export DB_NAME=shama_game
-export DB_USER=ваш_пользователь
-export DB_PASSWORD=ваш_пароль
-```
+будут дополняться
 
 ### Установка зависимостей
 
 1. Клонируйте репозиторий:
 
 ```bash
-git clone https://github.com/your-username/shama-game.git
-cd shama-game
+git clone https://github.com/Arroch/ShamaCardGame
+cd ShamaCardGame
 ```
 
 2. Создайте и активируйте виртуальное окружение:
 
 ```bash
 # Создание виртуального окружения
-python3 -m venv venv
+python -m venv venv
 
 # Активация виртуального окружения
 # На macOS/Linux:
@@ -89,14 +66,17 @@ pip install -r backend/requirements.txt
 2. Установите токен как переменную окружения:
 
 ```bash
+# На macOS/Linux:
 export TELEGRAM_BOT_TOKEN=ваш_токен_бота
+# На Windows:
+# set TELEGRAM_BOT_TOKEN=ваш_токен_бота
 ```
 
 ### Запуск бота
 
 ```bash
 cd backend
-python telegram_bot.py
+python game_tg_bot.py
 ```
 
 ## Использование
@@ -123,14 +103,34 @@ python telegram_bot.py
 2. Игроки ходят картами в порядке очереди
 3. Игра продолжается до тех пор, пока одна из команд не наберет 12 или более очков
 
-## Структура проекта
+### Настройка хранилища данных (в разработке, работает только Файловое хранилище)
 
-- `backend/core.py` - Ядро игрового движка
-- `backend/game_constants.py` - Константы игры
-- `backend/telegram_bot.py` - Реализация Telegram бота
-- `backend/database_manager.py` - Взаимодействие с базой данных
-- `backend/tests/` - Тесты
-- `TECHNICAL_SPEC.md` - Техническое задание
+Бот поддерживает два типа хранилища данных:
+1. **Файловое хранилище** (по умолчанию) - данные хранятся в CSV-файлах в локальной директории
+2. **PostgreSQL** - данные хранятся в базе данных PostgreSQL
+
+#### Настройка файлового хранилища
+
+По умолчанию файлы хранятся в директории `backend/storage`.
+
+#### Настройка PostgreSQL (опционально)
+
+1. Создайте базу данных в PostgreSQL:
+
+```sql
+CREATE DATABASE shama_game;
+```
+
+2. Установите переменные окружения для доступа к базе данных:
+
+```bash
+export STORAGE_TYPE=postgres
+export DB_HOST=localhost
+export DB_PORT=5432
+export DB_NAME=shama_game
+export DB_USER=ваш_пользователь
+export DB_PASSWORD=ваш_пароль
+```
 
 ## Правила игры
 

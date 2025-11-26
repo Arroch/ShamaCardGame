@@ -1,7 +1,6 @@
 import unittest
 import sys
 import os
-from io import StringIO
 from unittest.mock import patch, MagicMock, call
 
 # Добавляем родительский каталог в путь для абсолютных импортов
@@ -9,7 +8,7 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')
 
 import game_cli
 from core import MatchState, GameEngine, Player, Card
-from game_constants import GameConstants
+from constants import GameConstants
 
 class TestGameCLI(unittest.TestCase):
     

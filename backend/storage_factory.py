@@ -9,7 +9,7 @@
 
 import os
 import logging
-from typing import Optional, Dict, Any, Union
+from typing import Optional, Dict, Any
 
 # Настройка логирования
 logging.basicConfig(

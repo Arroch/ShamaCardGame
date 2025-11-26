@@ -9,10 +9,9 @@
 
 import logging
 import os
-from typing import Dict, List, Optional, Any, Tuple
+from typing import Dict, List, Optional, Any
 
 import psycopg2
-from psycopg2 import pool
 from psycopg2.extras import DictCursor, Json
 
 from constants import GameConstants

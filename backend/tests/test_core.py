@@ -2,13 +2,13 @@ import unittest
 import sys
 import os
 import random
-from unittest.mock import patch, MagicMock
+from unittest.mock import patch
 
 # Добавляем родительский каталог в путь для абсолютных импортов
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 from core import Card, Player, MatchState, GameEngine, InvalidPlayerAction
-from game_constants import GameConstants
+from constants import GameConstants
 
 class TestCard(unittest.TestCase):
     def test_card_creation(self):
