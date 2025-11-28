@@ -61,6 +61,10 @@ class Player:
         self.id = player_id
         self.name = player_name
         self.hand = []  # Карты на руках
+        self.stat = {
+            'total_shama_calls': 0,
+            'total_tricks': 0,
+        }  # Статистика в текущей игре
         
     def add_card(self, card: Card):
         """Добавление карты в руку игрока"""
@@ -80,9 +84,17 @@ class Player:
         """Показать карты на руке у игрока"""
         return self.hand
         
-    def clear_hand(self) -> list:
+    def clear_hand(self):
         """Убрать карты на руке у игрока"""
         self.hand = []
+
+    def shama_calls_increase(self):
+        """Увеличить кол-во хваленных козырей"""
+        self.stat['total_shama_calls'] += 1
+
+    def count_tricks_increase(self):
+        """Увеличить кол-во выигранных взяток"""
+        self.stat['total_tricks'] += 1
     
     def __repr__(self):
         """Строковое представление игрока"""
@@ -239,7 +251,7 @@ class GameEngine:
         for player in self.state.players.values():
             player.clear_hand()
 
-        # Оптимизированная раздача карт: один цикл вместо вложенных
+        # Раздача карт
         player_ids = list(self.state.players.keys())
         for i, card in enumerate(deck):
             player_index = player_ids[i % len(player_ids)]
@@ -285,9 +297,11 @@ class GameEngine:
         self.state.set_trump(suit)
 
         if self.state.status == GameConstants.Status.TRUMP_SELECTED:
-                    # Сортируем карты всех игроков с учетом козыря
+            # Сортируем карты всех игроков с учетом козыря
             for p in self.state.players:
                     self.state.players[p].sort_hand(suit)
+            # Записываем стату
+            self.state.players[player_index].shama_calls_increase()
 
             return self.state.status, self.state.players[player_index].name, self.state.trump
         else:
@@ -483,6 +497,8 @@ class GameEngine:
             trick_points = sum(c['card'].value for c in self.state.current_table)
             self.state.increase_score(winning_team_index, trick_points, 'game')
             
+            self.state.players[winning_player_index].count_tricks_increase()
+
             self.state.current_player_index = winning_player_index
             self.state.clear_table()
             if self.state.current_turn <= 9:
