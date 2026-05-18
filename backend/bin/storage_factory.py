@@ -38,7 +38,7 @@ class StorageFactory:
         if storage_type == "postgres":
             try:
                 # Импортируем DatabaseManager только если нужен PostgreSQL
-                from database_manager import DatabaseManager
+                from .database_manager import DatabaseManager
                 
                 # Получаем параметры подключения из переменных окружения
                 db_params = {
@@ -69,7 +69,7 @@ class StorageFactory:
         if storage_type == "file":
             try:
                 # Импортируем FileStorage
-                from file_storage import FileStorage
+                from .file_storage import FileStorage
                 
                 # Получаем путь к хранилищу из переменных окружения
                 storage_dir = os.environ.get('STORAGE_DIR')
