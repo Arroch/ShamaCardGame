@@ -174,40 +174,46 @@ class FileStorage:
         except Exception as e:
             logger.error(f"Ошибка при создании матча: {e}")
     
+    @staticmethod
+    def _serialize_hand(hand: list) -> str:
+        """Сериализует список карт (Card или dict) в JSON-строку."""
+        result = []
+        for card in hand:
+            if isinstance(card, dict):
+                result.append(card)
+            else:
+                result.append({"suit": card.suit, "rank": card.rank, "value": card.value})
+        return json.dumps(result)
+
     async def create_game(self, match_id: int, game_id: int, trump: str, shama_player: int,
-                   hands: Dict[int, List[Dict[str, str]]]) -> Optional[int]:
+                   hands: Dict[int, List]) -> Optional[int]:
         """
         Создает новую раздачу в хранилище.
-        
+
         :param match_id: ID матча
         :param game_id: ID раздачи
         :param trump: Козырь
         :param shama_player: Позиция игрока с шамой
-        :param hands: Словарь {позиция игрока: список карт}
+        :param hands: Словарь {позиция игрока: список Card или dict}
         """
         try:
-            # Преобразуем руки в JSON строки
-            hand_11 = json.dumps(hands.get(11, []))
-            hand_12 = json.dumps(hands.get(12, []))
-            hand_21 = json.dumps(hands.get(21, []))
-            hand_22 = json.dumps(hands.get(22, []))
-            
-            # Добавляем игру в файл
+            # Fix #10: правильный порядок полей (match_id, game_id, ...)
+            # Fix #10: сериализация Card-объектов через _serialize_hand
             with open(self.games_file, 'a', newline='', encoding='utf-8') as f:
                 writer = csv.writer(f)
                 writer.writerow([
-                    game_id, 
                     match_id,
+                    game_id,
                     trump,
                     shama_player,
-                    hand_11,
-                    hand_12,
-                    hand_21,
-                    hand_22,
-                    datetime.datetime.now().isoformat()
+                    self._serialize_hand(hands.get(11, [])),
+                    self._serialize_hand(hands.get(12, [])),
+                    self._serialize_hand(hands.get(21, [])),
+                    self._serialize_hand(hands.get(22, [])),
+                    datetime.datetime.now().isoformat(),
                 ])
-            
-            logger.info(f"Создана новая раздача (ID: {game_id}) в матче {match_id}")
+
+            logger.info(f"Создана раздача (ID: {game_id}) в матче {match_id}")
         except Exception as e:
             logger.error(f"Ошибка при создании раздачи: {e}")
     
