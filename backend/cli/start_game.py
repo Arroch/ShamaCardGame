@@ -7,8 +7,8 @@
 Автор: ShamaVibe Team
 """
 
-from core import MatchState, GameEngine, Player, Card, InvalidPlayerAction
-from constants import GameConstants
+from bin.core import MatchState, GameEngine, Player, Card, InvalidPlayerAction
+from bin.constants import GameConstants
 
 def show_rules():
     print(
@@ -145,27 +145,26 @@ def create_match():
         print(e)
         return state.status, state
 
-def handle_menu_selection(status_code, state):
+def handle_menu_selection(state):
     """Обрабатывает выбор пункта меню.
-    
+
     Args:
-        status_code: Текущий код состояния
-        state: Объект состояния игры
-        
+        state: Объект состояния игры или None
+
     Returns:
-        tuple: (status_code, state) - обновленные код состояния и объект игры
+        tuple: (GameConstants.Status | None, state) - новый статус или None при выходе
     """
-    menu_choice = show_menu() if status_code != GameConstants.Status.PLAYERS_ADDED.value else status_code
-    
-    if menu_choice == 3:  # Выход
-        return -100, state
-    elif menu_choice == 2:  # Правила
+    menu_choice = show_menu()
+
+    if menu_choice == 3:
+        return None, state
+    elif menu_choice == 2:
         show_rules()
-        return menu_choice, state
-    elif menu_choice == 1:  # Новая игра
+        return GameConstants.Status.WAITING_PLAYERS, state
+    elif menu_choice == 1:
         status, state = create_match()
-        return status.value, state
-    return status_code, state
+        return status, state
+    return GameConstants.Status.WAITING_PLAYERS, state
 
 def handle_trump_selection(engine, state, first_player):
     """Обрабатывает выбор козыря игроком с шамой.
@@ -276,103 +275,90 @@ def handle_new_deal(engine, state):
     
     return state.status
 
-def main(status_code, state):
-    """Основная функция игрового процесса.
-    
-    Управляет потоком игры в зависимости от текущего состояния.
-    
+def run_game(engine, state):
+    """Основной игровой цикл.
+
     Args:
-        status_code: Текущий код состояния
+        engine: Игровой движок
         state: Объект состояния игры
-        
-    Returns:
-        tuple: (status_code, state) - обновленные код состояния и объект игры
     """
-    # Обрабатываем выбор в меню
-    status_code, state = handle_menu_selection(status_code, state)
-    if status_code == -100 or state is None:
-        return status_code, state
-    # Обработка начала игры
-    if state.status == GameConstants.Status.PLAYERS_ADDED:
+    losing_team = None
+
+    while state.status not in (GameConstants.Status.MATCH_COMPLETED, GameConstants.Status.GAME_FINISHED):
+        if state.status == GameConstants.Status.PLAYERS_ADDED:
+            engine.start_game()
+
+        elif state.status == GameConstants.Status.WAITING_TRUMP:
+            handle_trump_selection(engine, state, state.players[state.first_player_index])
+
+        elif state.status == GameConstants.Status.NEW_DEAL_READY:
+            handle_new_deal(engine, state)
+
+        elif state.status in (
+            GameConstants.Status.TRUMP_SELECTED,
+            GameConstants.Status.PLAYING_CARDS,
+            GameConstants.Status.PLAYED_CARD_1,
+            GameConstants.Status.PLAYED_CARD_2,
+            GameConstants.Status.PLAYED_CARD_3,
+        ):
+            handle_player_turn(engine, state)
+
+        elif state.status == GameConstants.Status.TRICK_COMPLETED:
+            print("Карты на столе:", state.show_table())
+            _, winning_card, winning_player_index, trick_points = engine.complete_turn()
+            print(f"Взятку забрал игрок {state.players[winning_player_index]} "
+                  f"картой {winning_card}! Начислили: {trick_points}")
+
+        elif state.status == GameConstants.Status.GAME_COMPLETED:
+            _, scores, losing_team, losing_points, _ = engine.complete_game()
+            team1_players = f"{state.players[GameConstants.PLAYER_1_1]} и {state.players[GameConstants.PLAYER_1_2]}"
+            team2_players = f"{state.players[GameConstants.PLAYER_2_1]} и {state.players[GameConstants.PLAYER_2_2]}"
+            losing_players = f"{state.players[losing_team + 1]} и {state.players[losing_team + 2]}"
+            print(f"Раздача завершилась!")
+            print(f"Хвалил {state.players[state.first_player_index]}, "
+                  f"счет: {team1_players} | {scores[GameConstants.TEAM_1]}-{scores[GameConstants.TEAM_2]} | {team2_players}")
+            print(f"Начислили {losing_points} очков для {losing_players}")
+
+    if state.status == GameConstants.Status.MATCH_COMPLETED:
+        engine.complete_match()
+        losing_players = f"{state.players[losing_team + 1]} и {state.players[losing_team + 2]}" if losing_team else "неизвестная команда"
+        print(f"\nИгра закончилась!")
+        print(f"{losing_players} — проиграли(")
+        print(f"Счет: {state.match_scores[GameConstants.TEAM_1]}-{state.match_scores[GameConstants.TEAM_2]}\n")
+
+
+def main(state):
+    """Обрабатывает один цикл главного меню.
+
+    Args:
+        state: Объект состояния игры или None
+
+    Returns:
+        tuple: (running, state) — False если нужно выйти из программы
+    """
+    if state is not None and state.status == GameConstants.Status.PLAYERS_ADDED:
         input_command = input()
-        if input_command == 's':  # Начать игру
+        if input_command == 's':
             engine = GameEngine(state)
-            status = state.status
-            # game_finished = False
-            # losing_team = None
-            
-            # Основной игровой цикл
-            while state.status not in (GameConstants.Status.MATCH_COMPLETED, GameConstants.Status.GAME_FINISHED):
-                # Обработка разных состояний игры
-                if state.status == GameConstants.Status.PLAYERS_ADDED:
-                    # Начало игры (раздача карт)
-                    status = engine.start_game()
-                    
-                elif state.status == GameConstants.Status.WAITING_TRUMP:
-                    # Выбор козыря
-                    status = handle_trump_selection(engine, state, 
-                                                        state.players[state.first_player_index])
-                    
-                elif state.status == GameConstants.Status.NEW_DEAL_READY:
-                    # Новая раздача
-                    status = handle_new_deal(engine, state)
-                    
-                # Игровой процесс
-                elif GameConstants.Status.TRUMP_SELECTED.value <= status.value < GameConstants.Status.TRICK_COMPLETED.value:
-                    # Обработка ходов игроков
-                    while state.status != GameConstants.Status.TRICK_COMPLETED:
-                        status = handle_player_turn(engine, state)
-                        if status == GameConstants.Status.GAME_FINISHED:
-                            # game_finished = True
-                            break
-                    
-                # Завершение кона
-                elif state.status == GameConstants.Status.TRICK_COMPLETED:
-                    print(f"Карты на столе:", end=' ')
-                    print(state.show_table())
-                    status, winning_card, winning_player_index, trick_points = engine.complete_turn()
-                    print(f"Взятку забрал игрок {state.players[winning_player_index]} "
-                          f"картой {winning_card}! Начислили: {trick_points}")
-                
-                # Завершение игры
-                elif state.status == GameConstants.Status.GAME_COMPLETED:
-                    status, scores, losing_team, losing_points, _ = engine.complete_game()
-                    team1_players = f"{state.players[GameConstants.PLAYER_1_1]} и {state.players[GameConstants.PLAYER_1_2]}"
-                    team2_players = f"{state.players[GameConstants.PLAYER_2_1]} и {state.players[GameConstants.PLAYER_2_2]}"
-                    
-                    print(f"""Раздача завершилась!
-    Хвалил игрок {state.players[state.first_player_index]}, счет: {team1_players} | {scores[GameConstants.TEAM_1]}-{scores[GameConstants.TEAM_2]} | {team2_players}
-    Начислили очки ({losing_points}) для {state.players[losing_team + 1]} и {state.players[losing_team + 2]}""")
-            
-            # Завершение матча, если одна из команд набрала 12+ очков
-            if status == GameConstants.Status.MATCH_COMPLETED:
-                status = engine.complete_match()
-                print(f"""Игра закончилась!
-    {state.players[losing_team + 1]} и {state.players[losing_team + 2]} - проиграли(
-    Счет: {state.match_scores[GameConstants.TEAM_1]}-{state.match_scores[GameConstants.TEAM_2]}\n""")
-                return state.status.value, state
-        
-        elif input_command in ('m',):  # Вернуться в меню
-            state.set_status(GameConstants.Status.GAME_FINISHED)
-            return state.status.value, state
+            run_game(engine, state)
+            return True, None
+        elif input_command == 'm':
+            return True, None
         else:
-            print("Чтобы начать игру введите `s`, чтобы вернуться в меню - `m`\n")
-    else:
-        return state.status.value, state
-    return status_code, state
+            print("Чтобы начать игру введите `s`, чтобы вернуться в меню — `m`\n")
+            return True, state
+
+    status, state = handle_menu_selection(state)
+    if status is None:
+        return False, None
+    return True, state
 
 
 if __name__ == "__main__":
-    """Точка входа в программу при запуске скрипта напрямую."""
     try:
-        status_code = 0
         state = None
-        # Основной цикл программы
-        while status_code >= 0:
-            status_code, state = main(status_code, state)
-            
+        running = True
+        while running:
+            running, state = main(state)
     except KeyboardInterrupt:
         print("\nИгра прервана пользователем. До свидания!")
-    # except Exception as e:
-    #     print(f"\nПроизошла ошибка: {e}")
-    #     print("Игра завершена.")

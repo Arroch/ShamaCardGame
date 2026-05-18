@@ -7,8 +7,8 @@ from unittest.mock import patch
 # Добавляем родительский каталог в путь для абсолютных импортов
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
-from core import Card, Player, MatchState, GameEngine, InvalidPlayerAction
-from constants import GameConstants
+from bin.core import Card, Player, MatchState, GameEngine, InvalidPlayerAction
+from bin.constants import GameConstants
 
 class TestCard(unittest.TestCase):
     def test_card_creation(self):
@@ -388,7 +388,7 @@ class TestGameEngine(unittest.TestCase):
         self.state.first_player_index = 11  # Шама у игрока 11
         self.state.game_scores = {10: 20, 20: 30}  # Команда 10 проиграла с меньшим счетом
         
-        status, scores, losed_team, losed_points = self.engine.complete_game()
+        status, scores, losed_team, losed_points, _ = self.engine.complete_game()
         
         self.assertEqual(status, GameConstants.Status.NEW_DEAL_READY)  # Готов к новой раздаче
         self.assertEqual(scores, {10: 20, 20: 30})

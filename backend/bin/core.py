@@ -7,7 +7,9 @@
 Автор: ShamaVibe Team
 """
 
-from constants import GameConstants
+import random
+
+from .constants import GameConstants
 
 class GameException(Exception):
     """Базовое исключение для игровых ошибок.
@@ -240,11 +242,10 @@ class GameEngine:
     
     def deal_cards(self):
         """Раздача карт игрокам (по 9 карт каждому).
-        
+
         Создаёт колоду, перемешивает и раздаёт карты игрокам.
         Также определяет, у какого игрока шама (6♣).
         """
-        import random
         deck = self.create_deck()
         random.shuffle(deck)
         # Очищаем руки каждого игрока перед раздачей
@@ -509,45 +510,39 @@ class GameEngine:
         else:
             raise IndexError("На столе меньше 4х карт")
         
-    def complete_game(self):
-        """ Подсчет очков и определение победителя"""
+    @staticmethod
+    def calculate_game_points(first_player_index: int, scores: dict) -> tuple:
+        """Подсчитывает очки за раздачу и определяет проигравшую команду.
 
-        # Функция для подсчета очков
-        def get_points(first_player_index, scores):
-            """
-            - Для команды, у которой была шесть крести на руках:
-            - 0 взяток - 12 очков
-            - меньше 30 взяток – 6 очков
-            - меньше 60 взяток – 3 очка
-            - ровно 60 взяток – 2 очка
-            - Для команды, у которой не было шесть крести на руках:
-            - 0 взяток - 6 очков
-            - меньше 30 взяток – 3 очка
-            - меньше 60 взяток – 1 очко
-            """
-            shama_team = first_player_index // 10 * 10
-            losed_team = 10 if scores[10] < scores[20] or scores[10] == 60 and shama_team == 10 else 20
-            if shama_team == losed_team:
-                if scores[losed_team] == 0:
-                    game_results = scores, losed_team, 12, 'сразу 12 очков'
-                elif scores[losed_team] < 30:
-                    game_results = scores, losed_team, 6, 'шесть очков'
-                elif scores[losed_team] < 60:
-                    game_results = scores, losed_team, 3, 'три очка'
-                else:
-                    game_results = scores, losed_team, 2, 'два очка'
+        Returns:
+            tuple: (scores, losed_team, losed_points, losed_points_text)
+        """
+        shama_team = first_player_index // 10 * 10
+        losed_team = 10 if scores[10] < scores[20] or scores[10] == 60 and shama_team == 10 else 20
+        if shama_team == losed_team:
+            if scores[losed_team] == 0:
+                return scores, losed_team, 12, 'сразу 12 очков'
+            elif scores[losed_team] < 30:
+                return scores, losed_team, 6, 'шесть очков'
+            elif scores[losed_team] < 60:
+                return scores, losed_team, 3, 'три очка'
             else:
-                if scores[losed_team] == 0:
-                    game_results = scores, losed_team, 6, 'шесть очков'
-                elif scores[losed_team] < 30:
-                    game_results = scores, losed_team, 3, 'три очка'
-                else:
-                    game_results = scores, losed_team, 1, 'одно очко'
-            return game_results
+                return scores, losed_team, 2, 'два очка'
+        else:
+            if scores[losed_team] == 0:
+                return scores, losed_team, 6, 'шесть очков'
+            elif scores[losed_team] < 30:
+                return scores, losed_team, 3, 'три очка'
+            else:
+                return scores, losed_team, 1, 'одно очко'
 
+    def complete_game(self):
+        """Подсчет очков и определение победителя раздачи."""
         # Проверка завершения игры (9 взяток)
         if self.state.current_turn > 9:
-            scores, losed_team, losed_points, losed_points_text = get_points(self.state.first_player_index, self.state.game_scores.copy())
+            scores, losed_team, losed_points, losed_points_text = self.calculate_game_points(
+                self.state.first_player_index, self.state.game_scores.copy()
+            )
             self.state.increase_score(losed_team, losed_points, 'match')
             self.state.clear_score('game')
             if self.state.match_scores[losed_team] < 12:
@@ -561,7 +556,6 @@ class GameEngine:
         self.state.set_status(GameConstants.Status.GAME_FINISHED)
         return self.state.status
     
-# Пример использования
 if __name__ == "__main__":
     state = MatchState()
     state.add_player(11, Player(1, 'Name_1'))
@@ -569,9 +563,7 @@ if __name__ == "__main__":
     state.add_player(21, Player(3, 'Name_3'))
     state.add_player(22, Player(4, 'Name_4'))
     engine = GameEngine(state)
-    s_code, f_player = engine.start_game()
-    print(f'StatusCode: {s_code}, {f_player} has Shama')
-    print(engine.state.players[11], engine.state.players[11].get_hand())
-    print(engine.state.players[12], engine.state.players[12].get_hand())
-    print(engine.state.players[21], engine.state.players[21].get_hand())
-    print(engine.state.players[22], engine.state.players[22].get_hand())
+    status = engine.start_game()
+    print(f'Status: {status}, shama player: {state.players[state.first_player_index]}')
+    for idx, player in state.players.items():
+        print(player, player.get_hand())

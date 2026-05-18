@@ -22,9 +22,9 @@ from telegram.error import TelegramError
 from dotenv import load_dotenv
 
 # Импорт модулей игры
-from core import GameEngine, MatchState, Player, GameException, InvalidPlayerAction
-from constants import GameConstants
-from storage_factory import StorageFactory
+from bin.core import GameEngine, MatchState, Player, GameException, InvalidPlayerAction
+from bin.constants import GameConstants
+from bin.storage_factory import StorageFactory
 
 # Загружаем переменные окружения из .env файла
 load_dotenv()

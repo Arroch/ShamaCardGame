@@ -6,9 +6,9 @@ from unittest.mock import patch, MagicMock, call
 # Добавляем родительский каталог в путь для абсолютных импортов
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
-import game_cli
-from core import MatchState, GameEngine, Player, Card
-from constants import GameConstants
+from cli import start_game as game_cli
+from bin.core import MatchState, GameEngine, Player, Card
+from bin.constants import GameConstants
 
 class TestGameCLI(unittest.TestCase):
     
@@ -130,45 +130,40 @@ class TestGameCLI(unittest.TestCase):
     @patch('builtins.input', return_value='3')  # Выбор пункта "Выход"
     def test_main_exit(self, mock_input, mock_print):
         """Тест выхода из игры через меню"""
-        status_code, state = game_cli.main(0, None)
-        
-        # Проверяем, что функция вернула код выхода
-        self.assertEqual(status_code, -100)
+        running, state = game_cli.main(None)
+
+        self.assertFalse(running)
         self.assertIsNone(state)
-    
+
     @patch('builtins.print')
     @patch('builtins.input', return_value='2')  # Выбор пункта "Правила"
-    @patch('game_cli.show_rules')
+    @patch('cli.start_game.show_rules')
     def test_main_show_rules(self, mock_show_rules, mock_input, mock_print):
         """Тест вызова правил через меню"""
-        status_code, state = game_cli.main(0, None)
-        
-        # Проверяем, что была вызвана функция показа правил
+        game_cli.main(None)
+
         mock_show_rules.assert_called_once()
-        
+
     @patch('builtins.print')
-    @patch('game_cli.show_menu', return_value=1)  # Выбор "Новая игра"
-    @patch('game_cli.create_match', return_value=(GameConstants.Status.PLAYERS_ADDED, MagicMock()))
+    @patch('cli.start_game.show_menu', return_value=1)  # Выбор "Новая игра"
+    @patch('cli.start_game.create_match', return_value=(GameConstants.Status.PLAYERS_ADDED, MagicMock()))
     @patch('builtins.input', return_value='m')  # Выбор "Вернуться в меню"
     def test_main_new_game_then_menu(self, mock_input, mock_create_match, mock_show_menu, mock_print):
         """Тест создания новой игры и возврата в меню"""
-        # Создаем заглушку для состояния игры
         mock_state = MagicMock()
         mock_state.status = GameConstants.Status.PLAYERS_ADDED
-        mock_state.players = {11: Player(1, 'P1'), 12: Player(2, 'P2'), 
-                             21: Player(3, 'P3'), 22: Player(4, 'P4')}
-        
-        # Обновляем возвращаемое значение create_match
+        mock_state.players = {11: Player(1, 'P1'), 12: Player(2, 'P2'),
+                               21: Player(3, 'P3'), 22: Player(4, 'P4')}
         mock_create_match.return_value = (GameConstants.Status.PLAYERS_ADDED, mock_state)
-        
-        status_code, state = game_cli.main(0, None)
-        
-        # Проверяем, что игра была создана и статус изменен
-        self.assertEqual(status_code, 104)
+
+        running, state = game_cli.main(None)
+
+        self.assertTrue(running)
+        self.assertIsNotNone(state)
         
     @patch('builtins.print')
-    @patch('game_cli.show_state')
-    @patch('game_cli.show_hand')
+    @patch('cli.start_game.show_state')
+    @patch('cli.start_game.show_hand')
     def test_show_game_state(self, mock_show_hand, mock_show_state, mock_print):
         """Тест отображения игрового состояния и руки игрока"""
         # Подготовим данные
