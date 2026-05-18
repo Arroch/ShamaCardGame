@@ -10,8 +10,8 @@ from telegram.ext import ContextTypes
 
 from bin.constants import GameConstants
 from bin.core import InvalidPlayerAction
-import tg_bot.state as S
-from tg_bot.game import (
+import client_tg_bot.state as S
+from client_tg_bot.game import (
     start_game,
     send_player_cards,
     send_message_to_all_players,

@@ -6,7 +6,7 @@ from unittest.mock import patch, MagicMock, call
 # Добавляем родительский каталог в путь для абсолютных импортов
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
-from cli import start_game as game_cli
+from client_cli import start_game as game_cli
 from bin.core import MatchState, GameEngine, Player, Card
 from bin.constants import GameConstants
 
@@ -137,7 +137,7 @@ class TestGameCLI(unittest.TestCase):
 
     @patch('builtins.print')
     @patch('builtins.input', return_value='2')  # Выбор пункта "Правила"
-    @patch('cli.start_game.show_rules')
+    @patch('client_cli.start_game.show_rules')
     def test_main_show_rules(self, mock_show_rules, mock_input, mock_print):
         """Тест вызова правил через меню"""
         game_cli.main(None)
@@ -145,8 +145,8 @@ class TestGameCLI(unittest.TestCase):
         mock_show_rules.assert_called_once()
 
     @patch('builtins.print')
-    @patch('cli.start_game.show_menu', return_value=1)  # Выбор "Новая игра"
-    @patch('cli.start_game.create_match', return_value=(GameConstants.Status.PLAYERS_ADDED, MagicMock()))
+    @patch('client_cli.start_game.show_menu', return_value=1)  # Выбор "Новая игра"
+    @patch('client_cli.start_game.create_match', return_value=(GameConstants.Status.PLAYERS_ADDED, MagicMock()))
     @patch('builtins.input', return_value='m')  # Выбор "Вернуться в меню"
     def test_main_new_game_then_menu(self, mock_input, mock_create_match, mock_show_menu, mock_print):
         """Тест создания новой игры и возврата в меню"""
@@ -162,8 +162,8 @@ class TestGameCLI(unittest.TestCase):
         self.assertIsNotNone(state)
         
     @patch('builtins.print')
-    @patch('cli.start_game.show_state')
-    @patch('cli.start_game.show_hand')
+    @patch('client_cli.start_game.show_state')
+    @patch('client_cli.start_game.show_hand')
     def test_show_game_state(self, mock_show_hand, mock_show_state, mock_print):
         """Тест отображения игрового состояния и руки игрока"""
         # Подготовим данные

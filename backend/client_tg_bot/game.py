@@ -6,7 +6,7 @@ from telegram import InlineKeyboardMarkup, InlineKeyboardButton
 
 from bin.constants import GameConstants
 from bin.core import GameEngine, MatchState, Player
-import tg_bot.state as S
+import client_tg_bot.state as S
 
 logger = logging.getLogger(__name__)
 

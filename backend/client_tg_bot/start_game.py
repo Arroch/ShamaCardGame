@@ -1,4 +1,4 @@
-"""Точка входа TG-бота «Шама». Запуск: python -m tg_bot.start_game из backend/."""
+"""Точка входа TG-бота «Шама». Запуск: python -m client_tg_bot.start_game из backend/."""
 
 import os
 import sys
@@ -17,8 +17,8 @@ from telegram.error import TelegramError
 from dotenv import load_dotenv
 
 from bin.storage_factory import StorageFactory
-import tg_bot.state as S
-from tg_bot.handlers import (
+import client_tg_bot.state as S
+from client_tg_bot.handlers import (
     start_command, create_game_command, start_game_command,
     help_command, ping_command, info_command, rules_command,
     status_command, stats_command,
