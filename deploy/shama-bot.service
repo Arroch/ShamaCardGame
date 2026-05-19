@@ -1,0 +1,30 @@
+[Unit]
+Description=Shama Card Game Telegram Bot
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=YOUR_USER
+WorkingDirectory=/YOUR/PATH/TO/ShamaCardGame/backend
+
+# Путь к python в виртуальном окружении
+ExecStart=/YOUR/PATH/TO/ShamaCardGame/venv/bin/python -m client_tg_bot.start_game
+
+# Перезапуск при падении, пауза 5 секунд
+Restart=on-failure
+RestartSec=5
+
+# Переменные окружения — можно задать прямо здесь или через EnvironmentFile
+# EnvironmentFile=/YOUR/PATH/TO/ShamaCardGame/backend/.env
+Environment=TELEGRAM_BOT_TOKEN=YOUR_TOKEN
+Environment=STORAGE_TYPE=file
+# Раскомментировать если нужен SOCKS5-прокси:
+# Environment=PROXY_URL=socks5://host:port
+
+# Логи идут в journald, смотреть: journalctl -u shama-bot -f
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target

@@ -57,6 +57,8 @@ pip install -r backend/requirements.txt
 ```bash
 TELEGRAM_BOT_TOKEN=ваш_токен          # обязательно для TG-бота
 STORAGE_TYPE=file                      # file (по умолчанию) или postgres
+PROXY_URL=socks5://host:port           # SOCKS5-прокси (опционально)
+# PROXY_URL=socks5://user:pass@host:port  # с авторизацией
 ```
 
 При `STORAGE_TYPE=postgres` дополнительно:
@@ -127,6 +129,18 @@ pytest
 | `backend/storage/events/*.json` | Лог всех событий |
 
 **PostgreSQL** доступен как опция через `STORAGE_TYPE=postgres` (требует psycopg2).
+
+## Автозапуск на Linux (systemd)
+
+```bash
+# 1. Отредактируйте deploy/shama-bot.service — укажите User, пути и токен
+# 2. Установите сервис:
+sudo bash deploy/install.sh
+
+# Управление:
+systemctl status shama-bot
+journalctl -u shama-bot -f
+```
 
 ## Правила игры
 

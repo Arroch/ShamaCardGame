@@ -1,4 +1,12 @@
-"""Точка входа TG-бота «Шама». Запуск: python -m client_tg_bot.start_game из backend/."""
+"""Точка входа TG-бота «Шама». Запуск: python -m client_tg_bot.start_game из backend/.
+
+Переменные окружения:
+  TELEGRAM_BOT_TOKEN  — токен бота (обязательно)
+  PROXY_URL           — SOCKS5-прокси (опционально)
+                        Форматы:
+                          socks5://host:port
+                          socks5://user:pass@host:port
+"""
 
 import os
 import sys
@@ -13,6 +21,7 @@ from telegram.ext import (
     Application, CommandHandler, MessageHandler,
     CallbackQueryHandler, filters,
 )
+from telegram.request import HTTPXRequest
 from telegram.error import TelegramError
 from dotenv import load_dotenv
 
@@ -37,6 +46,23 @@ logging.getLogger('httpcore').setLevel(logging.WARNING)
 logging.getLogger('telegram').setLevel(logging.INFO)
 
 BOT_TOKEN = os.environ.get("TELEGRAM_BOT_TOKEN")
+
+
+def _build_application() -> Application:
+    """Создаёт Application, при наличии PROXY_URL подключает SOCKS5."""
+    proxy_url = os.environ.get("PROXY_URL", "").strip()
+
+    builder = Application.builder().token(BOT_TOKEN)
+
+    if proxy_url:
+        if not proxy_url.startswith("socks5://"):
+            raise ValueError(f"PROXY_URL должен начинаться с socks5://, получено: {proxy_url!r}")
+        safe = proxy_url.split("@")[-1] if "@" in proxy_url else proxy_url
+        logger.info(f"SOCKS5-прокси: {safe}")
+        request = HTTPXRequest(proxy=proxy_url)
+        builder = builder.request(request).get_updates_request(request)
+
+    return builder.build()
 
 
 async def init_storage() -> bool:
@@ -78,9 +104,7 @@ async def run_bot() -> None:
         logger.error("Хранилище не инициализировано — бот не запущен.")
         return
 
-    application = Application.builder().token(BOT_TOKEN).build()
-
-    # Fix #2: сохраняем глобальный bot-инстанс
+    application = _build_application()
     S._bot = application.bot
 
     application.add_handler(CommandHandler("start",        start_command))
