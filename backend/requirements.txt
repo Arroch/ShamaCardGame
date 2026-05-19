@@ -2,5 +2,5 @@ uvicorn==0.29.0
 pytest==8.0.0
 python-dotenv==1.0.1
 # Telegram related packages
-python-telegram-bot==20.7
+python-telegram-bot[socks]==20.7
 asyncio==3.4.3
