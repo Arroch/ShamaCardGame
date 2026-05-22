@@ -16,7 +16,12 @@ from client_tg_bot.game import (
     send_player_cards,
     send_message_to_all_players,
     format_game_status,
+    auto_play_bots,
+    _handle_game_completed,
 )
+
+# Имена для бот-игроков
+_BOT_NAMES = ["Бот Ваня", "Бот Маша", "Бот Коля"]
 
 logger = logging.getLogger(__name__)
 
@@ -373,16 +378,18 @@ async def callback_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -
                     f"Очков: {trick_points}",
                 )
 
-                if status == GameConstants.Status.GAME_COMPLETED:
+                # Используем match_state.status — он актуален после complete_turn()
+                if match_state.status == GameConstants.Status.GAME_COMPLETED:
                     await _handle_game_completed(match_id, match_state, match_engine)
+                    # После _handle_game_completed: матч завершён ИЛИ новая раздача стартовала
+                    # Запускаем ботов если нужно
+                    await _maybe_run_bots(match_id, match_state, match_engine)
                     return
 
                 if match_state.status == GameConstants.Status.PLAYING_CARDS:
-                    next_player = match_state.players[match_state.current_player_index]
-                    await send_player_cards(next_player, match_state)
+                    await _maybe_run_bots(match_id, match_state, match_engine)
             else:
-                next_player = match_state.players[match_state.current_player_index]
-                await send_player_cards(next_player, match_state)
+                await _maybe_run_bots(match_id, match_state, match_engine)
 
         except InvalidPlayerAction as e:
             logger.warning(f"Недопустимый ход игрока {player_id}: {e}")
@@ -425,7 +432,7 @@ async def callback_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -
                 f"🃏 {player_name} выбрал козырь: {suit_symbol} ({suit_labels.get(suit, '?')})\n"
                 f"Ходит игрок с шамой.",
             )
-            await send_player_cards(match_state.players[match_state.current_player_index], match_state)
+            await _maybe_run_bots(match_id, match_state, match_engine)
         except Exception as e:
             logger.error(f"Ошибка при установке козыря: {e}")
             await query.message.reply_text(f"Ошибка: {e}")
@@ -493,66 +500,73 @@ async def callback_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -
 
 
 # ---------------------------------------------------------------------------
-# Внутренний хелпер завершения игры/матча
+# Хелперы
 # ---------------------------------------------------------------------------
 
-async def _handle_game_completed(match_id, match_state, match_engine):
-    """Обрабатывает завершение раздачи и (если нужно) матча."""
-    game_result   = match_engine.complete_game()
-    status, scores, losed_team, _, losed_points_text = game_result
+async def _maybe_run_bots(match_id: str, match_state, engine) -> None:
+    """Запускает авто-ход ботов если следующий игрок — бот, иначе отправляет карты живому."""
+    current = match_state.players.get(match_state.current_player_index)
+    if current is None:
+        return
+    if current.id < 0:
+        await auto_play_bots(match_id, match_state, engine)
+    else:
+        await send_player_cards(current, match_state)
 
-    await send_message_to_all_players(
-        match_state,
-        f"🏆 Раздача завершена!\n\n"
-        f"Козырь хвалил: {match_state.players[match_state.first_player_index]}\n"
-        f"Команда 1: {match_state.players[GameConstants.PLAYER_1_1]} и "
-        f"{match_state.players[GameConstants.PLAYER_1_2]}: {scores[10]}\n"
-        f"Команда 2: {match_state.players[GameConstants.PLAYER_2_1]} и "
-        f"{match_state.players[GameConstants.PLAYER_2_2]}: {scores[20]}\n\n"
-        f"Команда {losed_team // 10} получает {losed_points_text}\n\n"
-        f"Счёт матча:\n"
-        f"Команда 1: {match_state.match_scores[10]}\n"
-        f"Команда 2: {match_state.match_scores[20]}",
+
+# ---------------------------------------------------------------------------
+# Команда /fill_bots — заполнить свободные места ботами (для тестирования)
+# ---------------------------------------------------------------------------
+
+async def fill_bots_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    """Заполняет свободные места в комнате бот-игроками. Только для создателя игры."""
+    player_id = update.effective_user.id
+
+    if player_id not in S.PLAYER_TO_GAME:
+        await update.message.reply_text("Вы не состоите в ожидающей игре.")
+        return
+
+    match_id = S.PLAYER_TO_GAME[player_id]['id']
+    if match_id not in S.WAITING_MATCHES:
+        await update.message.reply_text("Ожидающая игра не найдена.")
+        return
+
+    if S.WAITING_MATCHES[match_id]['creator_id'] != player_id:
+        await update.message.reply_text("Только создатель игры может добавить ботов.")
+        return
+
+    all_positions = [
+        GameConstants.PLAYER_1_1, GameConstants.PLAYER_1_2,
+        GameConstants.PLAYER_2_1, GameConstants.PLAYER_2_2,
+    ]
+    taken = {
+        v['position'] for v in S.PLAYER_TO_GAME.values()
+        if v['id'] == match_id and v['position'] is not None
+    }
+    free = [p for p in all_positions if p not in taken]
+
+    if not free:
+        await update.message.reply_text("Все места уже заняты.")
+        return
+
+    for i, position in enumerate(free):
+        bot_id   = -position  # уникальный отрицательный ID по позиции
+        bot_name = _BOT_NAMES[i] if i < len(_BOT_NAMES) else f"Бот {i + 1}"
+        bot_data = {'id': bot_id, 'name': bot_name, 'username': f'bot{i + 1}'}
+
+        S.WAITING_MATCHES[match_id]['players'][bot_id] = bot_data
+        S.PLAYER_TO_GAME[bot_id] = {'id': match_id, 'status': 'waiting', 'position': position}
+
+        team_key = 'team_1' if position // 10 == 1 else 'team_2'
+        S.WAITING_MATCHES[match_id][team_key].append(f'{bot_name} (бот)')
+
+    players = S.WAITING_MATCHES[match_id]['players']
+    await update.message.reply_text(
+        f"🤖 Добавлено ботов: {len(free)}\n\n"
+        f"Команда 1: {S.WAITING_MATCHES[match_id]['team_1']}\n"
+        f"Команда 2: {S.WAITING_MATCHES[match_id]['team_2']}\n\n"
+        f"Участников: {len(players)}/4"
     )
 
-    if status == GameConstants.Status.MATCH_COMPLETED:
-        match_engine.complete_match()
-        losing_team  = 10 if match_state.match_scores[10] >= 12 else 20
-        winning_team = 20 if losing_team == 10 else 10
-
-        await send_message_to_all_players(
-            match_state,
-            f"🎉 Матч завершён!\n\n"
-            f"Победила Команда {winning_team // 10}: "
-            f"{match_state.players[winning_team + 1]} и "
-            f"{match_state.players[winning_team + 2]}\n"
-            f"Финальный счёт: {match_state.match_scores[10]} — {match_state.match_scores[20]}\n\n"
-            f"/create_game — новая игра.",
-        )
-
-        del S.ACTIVE_MATCHES[match_id]
-        del S.MATCH_ENGINES[match_id]
-
-        # Fix #9: используем реальные данные из player.stat
-        for pos, player in match_state.players.items():
-            player_team = pos // 10 * 10
-            won         = player_team == winning_team
-            tricks      = player.stat.get('total_tricks', 0)
-            shama_calls = player.stat.get('total_shama_calls', 0)
-            await S.storage.update_player_stats(player.id, won, tricks, shama_calls)
-
-        # Очищаем привязку игроков
-        for player_id in list(S.PLAYER_TO_GAME.keys()):
-            if S.PLAYER_TO_GAME[player_id]['id'] == match_id:
-                del S.PLAYER_TO_GAME[player_id]
-
-    elif status == GameConstants.Status.NEW_DEAL_READY:
-        await send_message_to_all_players(
-            match_state, "🃏 Новая раздача! Карты сдаются..."
-        )
-        match_engine.start_game()
-        for player_position, player in match_state.players.items():
-            await send_player_cards(
-                player, match_state,
-                is_first=(player_position == match_state.first_player_index),
-            )
+    if len(players) >= 4:
+        await start_game(match_id, players)
