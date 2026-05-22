@@ -248,13 +248,13 @@ class TestGameEngine(unittest.TestCase):
         self.assertTrue(has_shama)
             
     def test_start_game(self):
-        """Тест начала игры"""
-        # Подготовим состояние, чтобы шама была у определенного игрока
-        self.state.first_player_index = 11
+        """Тест начала игры: current_player — тот, у кого шама"""
         status = self.engine.start_game()
-        
         self.assertEqual(status, GameConstants.Status.WAITING_TRUMP)
-        self.assertEqual(self.state.current_player_index, 11)
+        # current_player_index должен указывать на игрока с 6♣
+        self.assertEqual(self.state.current_player_index, self.state.first_player_index)
+        shama_player = self.state.players[self.state.first_player_index]
+        self.assertTrue(any(c.rank == '6' and c.suit == 'clubs' for c in shama_player.hand))
                 
     def test_set_trump_by_player(self):
         """Тест установки козыря игроком"""
@@ -406,40 +406,125 @@ class TestGameEngine(unittest.TestCase):
         
     def test_full_game_cycle(self):
         """Тест полного цикла игры до достижения одной из команд 12 очков"""
-        # Фиксируем seed для воспроизводимости
         random.seed(42)
-        
-        # Играем матчи, пока одна из команд не наберет 12 очков
+
         while max(self.state.match_scores.values()) < 12:
-            # Начало игры
             self.engine.deal_cards()
-            status = self.engine.start_game()
-            # Установка козыря
+            self.engine.start_game()
             self.engine.set_trump_by_player(self.state.first_player_index, 'clubs')
 
-            # Симуляция 9 взяток (каждая взятка состоит из 4 ходов)
-            for trick in range(9):
-                for turn in range(4):
-                    current_player_index = self.state.current_player_index
+            for _ in range(9):
+                for _ in range(4):
+                    idx = self.state.current_player_index
+                    # Выбираем первую допустимую карту с учётом правил хода
+                    valid = next(
+                        (i for i in range(len(self.state.players[idx].hand))
+                         if self.engine.validate_card_play(idx, i)),
+                        None,
+                    )
+                    if valid is None:
+                        self.fail("Нет допустимой карты для хода")
                     try:
-                        # Играем первую карту из руки текущего игрока
-                        self.engine.play_turn(current_player_index, 0)
+                        self.engine.play_turn(idx, valid)
                     except Exception as e:
-                        self.fail(f"Ошибка при выполнении хода: {e}")
+                        self.fail(f"Ошибка при ходе: {e}")
 
-                # Завершаем взятку
                 self.engine.complete_turn()
 
-            # Завершаем игру (обновляем очки)
             self.engine.complete_game()
-            # Завершаем матч (проверяем, есть ли команда с >=12 очками)
             if max(self.state.match_scores.values()) >= 12:
                 self.engine.complete_match()
 
-        # Проверяем состояние игры: status_ должен быть 700 (игра завершена)
         self.assertEqual(self.state.status, GameConstants.Status.GAME_FINISHED)
-        # Проверяем, что одна из команд набрала 12 или более очков
         self.assertTrue(max(self.state.match_scores.values()) >= 12)
+
+
+class TestValidateCardPlay(unittest.TestCase):
+    def setUp(self):
+        self.state = MatchState()
+        self.state.add_player(11, Player(1, 'P1'))
+        self.state.add_player(12, Player(2, 'P2'))
+        self.state.add_player(21, Player(3, 'P3'))
+        self.state.add_player(22, Player(4, 'P4'))
+        self.engine = GameEngine(self.state)
+        self.state.trump = 'hearts'
+        self.state.status = GameConstants.Status.TRUMP_SELECTED
+        self.state.current_player_index = 11
+
+    def _add(self, player_index, *cards):
+        for card in cards:
+            self.state.players[player_index].add_card(card)
+
+    def test_first_move_any_card_allowed(self):
+        """Первый ход в коне — любая карта допустима"""
+        self._add(11, Card('clubs', '7', 0))
+        self.assertTrue(self.engine.validate_card_play(11, 0))
+
+    def test_follow_suit_required(self):
+        """Есть некозырная карта масти — обязан ходить ею"""
+        self.state.put_card(11, Card('clubs', '7', 0))
+        self._add(12, Card('clubs', 'A', 11), Card('hearts', '8', 0))
+        self.assertTrue(self.engine.validate_card_play(12, 0))   # A♣ ✓
+        self.assertFalse(self.engine.validate_card_play(12, 1))  # 8♥ (козырь) ✗
+
+    def test_no_suit_must_play_trump(self):
+        """Нет масти — обязан ходить козырем"""
+        self.state.put_card(11, Card('clubs', '7', 0))
+        self._add(12, Card('hearts', 'A', 11), Card('diamonds', '8', 0))
+        self.assertTrue(self.engine.validate_card_play(12, 0))   # A♥ (козырь) ✓
+        self.assertFalse(self.engine.validate_card_play(12, 1))  # 8♦ ✗
+
+    def test_no_suit_no_trump_any_card(self):
+        """Нет масти и нет козыря — любая карта"""
+        self.state.put_card(11, Card('clubs', '7', 0))
+        self._add(12, Card('spades', 'A', 11), Card('diamonds', '8', 0))
+        self.assertTrue(self.engine.validate_card_play(12, 0))
+        self.assertTrue(self.engine.validate_card_play(12, 1))
+
+    def test_first_trump_all_must_follow_trump(self):
+        """Первая карта козырная — все обязаны ходить козырем"""
+        self.state.put_card(11, Card('hearts', 'A', 11))
+        self._add(21, Card('hearts', '7', 0), Card('clubs', '9', 0))
+        self.assertTrue(self.engine.validate_card_play(21, 0))   # 7♥ (козырь) ✓
+        self.assertFalse(self.engine.validate_card_play(21, 1))  # 9♣ ✗
+
+    def test_jack_always_trump_when_following(self):
+        """Валет любой масти считается козырем"""
+        self.state.put_card(11, Card('hearts', 'A', 11))
+        self._add(21, Card('spades', 'J', 2), Card('clubs', '9', 0))
+        self.assertTrue(self.engine.validate_card_play(21, 0))   # J♠ (козырь) ✓
+        self.assertFalse(self.engine.validate_card_play(21, 1))  # 9♣ ✗
+
+    def test_clubs_six_always_trump(self):
+        """6♣ всегда козырь, даже если козырь не трефы"""
+        self.state.trump = 'diamonds'
+        self.state.put_card(11, Card('diamonds', 'A', 11))
+        self._add(21, Card('clubs', '6', 0), Card('spades', 'K', 4))
+        self.assertTrue(self.engine.validate_card_play(21, 0))   # 6♣ (козырь) ✓
+        self.assertFalse(self.engine.validate_card_play(21, 1))  # K♠ ✗
+
+    def test_jack_not_counted_as_suit_for_follow(self):
+        """J♠ не считается картой пик при проверке «есть пики» → обязан играть козырем"""
+        self.state.put_card(11, Card('spades', '7', 0))  # некозырная 7♠
+        # Только J♠ (козырь) и 8♥ (козырь) — некозырных пик нет
+        self._add(21, Card('spades', 'J', 2), Card('hearts', '8', 0))
+        # Нет «настоящих» пик → обязан козырем → оба козыри → оба допустимы
+        self.assertTrue(self.engine.validate_card_play(21, 0))   # J♠ (козырь) ✓
+        self.assertTrue(self.engine.validate_card_play(21, 1))   # 8♥ (козырь) ✓
+
+    def test_jack_leads_others_must_follow_trump(self):
+        """Если первый ход — валет (козырная карта), все должны козырять"""
+        self.state.put_card(11, Card('clubs', 'J', 2))  # J♣ — козырь
+        self._add(12, Card('diamonds', '9', 0), Card('hearts', 'K', 4))
+        self.assertFalse(self.engine.validate_card_play(12, 0))  # 9♦ ✗
+        self.assertTrue(self.engine.validate_card_play(12, 1))   # K♥ (козырь) ✓
+
+    def test_invalid_card_index(self):
+        """Недопустимый индекс карты → False"""
+        self._add(11, Card('hearts', 'A', 11))
+        self.assertFalse(self.engine.validate_card_play(11, 5))
+        self.assertFalse(self.engine.validate_card_play(11, -1))
+
 
 if __name__ == '__main__':
     unittest.main()

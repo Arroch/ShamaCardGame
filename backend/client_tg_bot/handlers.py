@@ -385,8 +385,8 @@ async def callback_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -
                 await send_player_cards(next_player, match_state)
 
         except InvalidPlayerAction as e:
-            logger.warning(f"Недопустимый ход: {e}")
-            await query.message.reply_text(f"Недопустимый ход: {e}")
+            logger.warning(f"Недопустимый ход игрока {player_id}: {e}")
+            await S._bot.send_message(chat_id=player_id, text=f"❌ {e}")
             await send_player_cards(match_state.players[player_position], match_state)
         except Exception as e:
             logger.error(f"Ошибка при ходе: {e}")

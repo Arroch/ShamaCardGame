@@ -308,54 +308,57 @@ class GameEngine:
         else:
             raise ValueError("Неудалось назначить козырь")
     
+    def _is_trump(self, card: Card) -> bool:
+        """Является ли карта козырной с учётом постоянных козырей (6♣ и все валеты)."""
+        return (
+            card.rank == 'J'
+            or (card.rank == '6' and card.suit == GameConstants.CLUBS)
+            or card.suit == self.state.trump
+        )
+
     def validate_card_play(self, player_index: int, card_index: int) -> bool:
         """Проверяет допустимость хода по правилам игры.
-        
-        Проверяет, соблюдает ли игрок правила хода:
-        1. Если это первый ход в коне - можно ходить любой картой
-        2. Если нет - нужно ходить в масть, если есть карты этой масти
-        3. Если нет карт в масть - нужно ходить козырем, если есть козыри
-        4. Если нет карт в масть и козырей - можно ходить любой картой
-        
-        Args:
-            player_index: Индекс игрока
-            card_index: Индекс карты в руке игрока
-            
-        Returns:
-            bool: True если ход допустим, False иначе
+
+        Правила:
+        - Первый ход в коне: любая карта.
+        - Первая карта козырная (включая J и 6♣): нужно ходить козырем;
+          нет козырей — любая карта.
+        - Первая карта некозырная: нужно ходить в масть (некозырными картами
+          той же масти); нет масти — козырем; нет ни того ни другого — любой картой.
+
+        Важно: J и 6♣ всегда являются козырями и НЕ считаются картами своей
+        «натуральной» масти при проверке «есть ли масть».
         """
         player = self.state.players[player_index]
-        
-        # Проверяем, что индекс карты в допустимых пределах
-        if card_index < 0 or card_index >= len(player.hand):
+
+        if not (0 <= card_index < len(player.hand)):
             return False
-            
+
         card = player.hand[card_index]
-        
-        # Если это первый ход в коне, любая карта допустима
-        if len(self.state.current_table) == 0:
+
+        if not self.state.current_table:
             return True
-            
-        # Получаем карту первого хода в коне
+
         first_card = self.state.current_table[0]['card']
+        card_is_trump = self._is_trump(card)
+
+        if self._is_trump(first_card):
+            # Первая карта козырная → все обязаны ходить козырем
+            has_trump = any(self._is_trump(c) for c in player.hand)
+            return card_is_trump or not has_trump
+
+        # Первая карта некозырная → нужно ходить некозырной картой той же масти
         first_suit = first_card.suit
-        
-        # Проверяем наличие карт нужной масти у игрока
-        has_same_suit = any(c.suit == first_suit for c in player.hand)
-        
-        # Если карта той же масти или у игрока нет карт этой масти
-        if card.suit == first_suit or not has_same_suit:
-            return True
-            
-        # Проверяем, есть ли у игрока козыри
-        has_trump = any(c.suit == self.state.trump for c in player.hand)
-        
-        # Если первая карта козырная, игрок должен ответить козырем, если может
-        if first_suit == self.state.trump:
-            return card.suit == self.state.trump or not has_trump
-            
-        # Если игрок не пошел в масть, должен ходить козырем, если он есть
-        return card.suit == self.state.trump or not has_trump
+        has_suit = any(
+            c.suit == first_suit and not self._is_trump(c)
+            for c in player.hand
+        )
+        if has_suit:
+            return card.suit == first_suit and not card_is_trump
+
+        # Нет масти → обязаны козырем
+        has_trump = any(self._is_trump(c) for c in player.hand)
+        return card_is_trump or not has_trump
     
     def play_turn(self, player_index: int, card_index: int):
         """Обработка хода игрока.
@@ -399,10 +402,8 @@ class GameEngine:
         if len(self.state.current_table) == 3:
             self.state.set_current_turn()
         
-        # Проверяем, соответствует ли ход правилам игры
-        # TODO: раскомментировать для включения проверки правил
-        # if not self.validate_card_play(player_index, card_index):
-        #     raise InvalidPlayerAction("Недопустимый ход! Вы должны ходить в масть или козырем.")
+        if not self.validate_card_play(player_index, card_index):
+            raise InvalidPlayerAction("Недопустимый ход! Необходимо ходить в масть или козырем.")
         
         # Играем карту
         card = player.play_card(card_index)
