@@ -52,6 +52,16 @@ def _build_application() -> Application:
     """Создаёт Application, при наличии PROXY_URL подключает SOCKS5."""
     proxy_url = os.environ.get("PROXY_URL", "").strip()
 
+    # Увеличиваем пул соединений: бот отправляет много сообщений одновременно
+    # (auto_play_bots + polling), дефолтный пул (1-5 соединений) не справляется.
+    pool_kwargs = dict(
+        connection_pool_size=16,
+        pool_timeout=30.0,
+        read_timeout=30.0,
+        write_timeout=30.0,
+        connect_timeout=30.0,
+    )
+
     builder = Application.builder().token(BOT_TOKEN)
 
     if proxy_url:
@@ -59,9 +69,11 @@ def _build_application() -> Application:
             raise ValueError(f"PROXY_URL должен начинаться с socks5://, получено: {proxy_url!r}")
         safe = proxy_url.split("@")[-1] if "@" in proxy_url else proxy_url
         logger.info(f"SOCKS5-прокси: {safe}")
-        request = HTTPXRequest(proxy=proxy_url)
-        builder = builder.request(request).get_updates_request(request)
+        request = HTTPXRequest(proxy=proxy_url, **pool_kwargs)
+    else:
+        request = HTTPXRequest(**pool_kwargs)
 
+    builder = builder.request(request).get_updates_request(request)
     return builder.build()
 
 
