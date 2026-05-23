@@ -151,6 +151,17 @@ async def _handle_game_completed(match_id: str, match_state, engine) -> None:
     """Обрабатывает завершение раздачи: подсчёт очков, конец матча или новая раздача."""
     _, scores, losed_team, _, losed_points_text = engine.complete_game()
 
+    # Сохраняем завершенную игру в хранилище
+    game_id = f"{match_id}_game_{match_state.current_turn}"
+
+    # Подготавливаем данные рук игроков
+    hands = {}
+    for position, player in match_state.players.items():
+        hands[position] = player.hand  # Сохраняем исходные руки (пустые после раздачи)
+
+    await S.storage.create_game(match_id, game_id, match_state.trump,
+                               match_state.first_player_index, hands)
+
     await send_message_to_all_players(
         match_state,
         f"🏆 Раздача завершена!\n\n"
@@ -200,6 +211,17 @@ async def _handle_game_completed(match_id: str, match_state, engine) -> None:
     elif match_state.status == GameConstants.Status.NEW_DEAL_READY:
         await send_message_to_all_players(match_state, "🃏 Новая раздача! Карты сдаются...")
         engine.start_game()
+
+        # Сохраняем новую игру в хранилище
+        game_id = f"{match_id}_game_{match_state.current_turn}"
+
+        # Подготавливаем данные рук игроков
+        hands = {}
+        for position, player in match_state.players.items():
+            hands[position] = player.hand
+
+        await S.storage.create_game(match_id, game_id, match_state.trump,
+                                   match_state.first_player_index, hands)
 
         # Если шама у бота — автоматически выбираем козырь
         shama = match_state.players[match_state.first_player_index]

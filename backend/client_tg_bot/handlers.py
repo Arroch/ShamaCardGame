@@ -201,7 +201,12 @@ async def create_game_command(update: Update, context: ContextTypes.DEFAULT_TYPE
         f"🎮 {first_name} создал(а) новую игру!\n\n"
         f"Участники: • {first_name}\n\n"
         f"Пригласите друзей:\n{invite_link}\n\n"
-        f"/start join_{match_id}"
+        f"/start join_{match_id}\n\n"
+        f"💡 Команды для создателя:\n"
+        f"/fill_bots — добавить ботов в свободные места\n"
+        f"/start_game — принудительно начать игру\n\n"
+        f"💡 Для участников:\n"
+        f"/leave_game — выйти из ожидающей игры"
     )
 
 
@@ -234,7 +239,9 @@ async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
         "/ping — Проверить работу бота\n"
         "/info — Информация о боте\n"
         "/create_game — Создать новую игру\n"
-        "/fill_bots — Заполнить бота игроками\n"
+        "/start_game — Принудительно начать игру (создатель)\n"
+        "/fill_bots — Заполнить свободные места ботами (создатель)\n"
+        "/leave_game — Выйти из ожидающей игры\n"
         "/status — Текущее состояние игры\n"
         "/stats — Ваша статистика\n"
         "/rules — Правила игры"
@@ -373,6 +380,22 @@ async def callback_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -
             if status == GameConstants.Status.TRICK_COMPLETED:
                 _, winning_card, winning_player_index, trick_points = match_engine.complete_turn()
                 winning_player = match_state.players[winning_player_index]
+
+                # Сохраняем ход в хранилище
+                game_id = f"{match_id}_game_1"  # Пока всегда первая игра в матче
+                turn_id = match_state.current_turn - 1  # Текущий ход (уже увеличен в complete_turn)
+
+                # Подготавливаем данные карт
+                cards_data = {}
+                for card_data in match_state.current_table:
+                    player_pos = card_data['player_index']
+                    card = card_data['card']
+                    cards_data[player_pos] = str(card)  # Сохраняем строковое представление
+
+                await S.storage.create_turn(match_id, game_id, turn_id,
+                                          match_state.current_player_index, cards_data,
+                                          trick_points, winning_player_index // 10 * 10)
+
                 await send_message_to_all_players(
                     match_state,
                     f"👑 {winning_player.name} забирает взятку с {winning_card}! "
@@ -513,6 +536,63 @@ async def _maybe_run_bots(match_id: str, match_state, engine) -> None:
         await auto_play_bots(match_id, match_state, engine)
     else:
         await send_player_cards(current, match_state)
+
+
+# ---------------------------------------------------------------------------
+# Команда /leave_game — выход из ожидающей игры
+# ---------------------------------------------------------------------------
+
+async def leave_game_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    """Обработчик /leave_game — выход из ожидающей игры."""
+    player_id = update.effective_user.id
+    first_name = update.effective_user.first_name
+
+    if player_id not in S.PLAYER_TO_GAME:
+        await update.message.reply_text("Вы не состоите в ожидающей игре.")
+        return
+
+    match_id = S.PLAYER_TO_GAME[player_id]['id']
+
+    # Проверяем, что игра еще ожидает игроков
+    if match_id not in S.WAITING_MATCHES:
+        await update.message.reply_text("Игра уже началась. Нельзя выйти из активной игры.")
+        return
+
+    # Удаляем игрока из игры
+    if player_id in S.WAITING_MATCHES[match_id]['players']:
+        del S.WAITING_MATCHES[match_id]['players'][player_id]
+
+        # Удаляем из команды
+        position = S.PLAYER_TO_GAME[player_id]['position']
+        if position is not None:
+            team_key = 'team_1' if position // 10 == 1 else 'team_2'
+            if team_key in S.WAITING_MATCHES[match_id]:
+                # Удаляем игрока из списка команды
+                team_list = S.WAITING_MATCHES[match_id][team_key]
+                S.WAITING_MATCHES[match_id][team_key] = [
+                    p for p in team_list if str(player_id) not in p
+                ]
+
+    # Удаляем из глобального состояния
+    del S.PLAYER_TO_GAME[player_id]
+
+    await S.storage.log_event(player_id, update.effective_user.username, "leave_game", {"match_id": match_id})
+
+    # Уведомляем остальных игроков
+    remaining_players = S.WAITING_MATCHES[match_id]['players']
+    for chat_id in remaining_players:
+        await context.bot.send_message(
+            chat_id=chat_id,
+            text=f"🚪 {first_name} вышел(а) из игры.\n\n"
+                 f"Участников: {len(remaining_players)}/4"
+        )
+
+    # Если игра пустая, удаляем ее
+    if not remaining_players:
+        del S.WAITING_MATCHES[match_id]
+        await update.message.reply_text("Игра удалена, так как все игроки вышли.")
+    else:
+        await update.message.reply_text("Вы вышли из игры.")
 
 
 # ---------------------------------------------------------------------------

@@ -30,7 +30,7 @@ import client_tg_bot.state as S
 from client_tg_bot.handlers import (
     start_command, create_game_command, start_game_command,
     help_command, ping_command, info_command, rules_command,
-    status_command, stats_command, fill_bots_command,
+    status_command, stats_command, fill_bots_command, leave_game_command,
     text_handler, error_handler, callback_handler,
 )
 
@@ -129,6 +129,7 @@ async def run_bot() -> None:
     application.add_handler(CommandHandler("status",       status_command))
     application.add_handler(CommandHandler("stats",        stats_command))
     application.add_handler(CommandHandler("fill_bots",   fill_bots_command))
+    application.add_handler(CommandHandler("leave_game",  leave_game_command))
     application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, text_handler))
     application.add_handler(CallbackQueryHandler(callback_handler))
     application.add_error_handler(error_handler)
