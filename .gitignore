@@ -41,7 +41,23 @@ build/
 .DS_Store
 Thumbs.db
 
-backend/test_scripts.ipynb
-backend/.pytest_cache
-backend/game_logs.json
-backend/bin/storage
+# Project specific
+backend/bin/storage/
+
+# Testing
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Package files
+*.tar.gz
+*.whl
+
+# Temporary files
+*.tmp
+*.temp
+
+# Database
+*.db
+*.sqlite
+*.sqlite3
