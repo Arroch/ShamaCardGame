@@ -152,7 +152,8 @@ async def _handle_game_completed(match_id: str, match_state, engine) -> None:
     _, scores, losed_team, _, losed_points_text = engine.complete_game()
 
     # Сохраняем завершенную игру в хранилище
-    game_id = f"{match_id}_game_{match_state.current_turn}"
+    # Используем простой номер раздачи вместо сложного ID
+    game_id = match_state.current_game
 
     # Подготавливаем данные рук игроков
     hands = {}
@@ -212,8 +213,12 @@ async def _handle_game_completed(match_id: str, match_state, engine) -> None:
         await send_message_to_all_players(match_state, "🃏 Новая раздача! Карты сдаются...")
         engine.start_game()
 
+        # Увеличиваем номер раздачи для следующей игры
+        match_state.set_current_game()
+
         # Сохраняем новую игру в хранилище
-        game_id = f"{match_id}_game_{match_state.current_turn}"
+        # Используем простой номер раздачи вместо сложного ID
+        game_id = match_state.current_game
 
         # Подготавливаем данные рук игроков
         hands = {}
@@ -290,6 +295,8 @@ async def auto_play_bots(match_id: str, match_state, engine) -> None:
             await send_message_to_all_players(
                 match_state, f"🤖 {shama.name} объявляет козырь: {sym}"
             )
+            # Логируем выбор козыря ботом
+            await S.storage.log_event(shama.id, shama.name, "set_trump", {"trump": trump})
             continue  # Проверяем следующий статус
 
         if status not in _playing:
@@ -317,6 +324,9 @@ async def auto_play_bots(match_id: str, match_state, engine) -> None:
         _, player, card = engine.play_turn(current_idx, valid_idx)
         await send_message_to_all_players(match_state, f"🤖 {player.name} сыграл: {card}")
 
+        # Логируем ход бота в хранилище событий
+        await S.storage.log_event(player.id, player.name, "play_card", {"card": str(card)})
+
         if match_state.status == GameConstants.Status.TRICK_COMPLETED:
             _, winning_card, winning_player_idx, trick_points = engine.complete_turn()
             winning_player = match_state.players[winning_player_idx]
@@ -324,6 +334,21 @@ async def auto_play_bots(match_id: str, match_state, engine) -> None:
                 match_state,
                 f"👑 {winning_player.name} забирает взятку ({winning_card}, {trick_points} очков)",
             )
+
+            # Сохраняем ход в хранилище (аналогично логике в handlers.py)
+            game_id = match_state.current_game
+            turn_id = match_state.current_turn - 1  # Текущий ход (уже увеличен в complete_turn)
+
+            # Подготавливаем данные карт
+            cards_data = {}
+            for card_data in match_state.current_table:
+                player_pos = card_data['player_index']
+                card = card_data['card']
+                cards_data[player_pos] = str(card)
+
+            await S.storage.create_turn(match_id, game_id, turn_id,
+                                      match_state.current_player_index, cards_data,
+                                      trick_points, winning_player_idx // 10 * 10)
 
             if match_state.status == GameConstants.Status.GAME_COMPLETED:
                 await _handle_game_completed(match_id, match_state, engine)
@@ -349,15 +374,17 @@ async def start_game(match_id: str, players: dict) -> None:
         engine = GameEngine(match_state)
         engine.start_game()
 
+        # Устанавливаем первую раздачу
+        match_state.set_current_game(1)
+
         S.ACTIVE_MATCHES[match_id] = match_state
         S.MATCH_ENGINES[match_id] = engine
         del S.WAITING_MATCHES[match_id]
 
-        # Сохраняем матч (только позиции живых игроков)
+        # Сохраняем матч (включая ботов)
         player_ids = {
             S.PLAYER_TO_GAME[pd['id']]['position']: pd['id']
             for pd in players.values()
-            if pd['id'] > 0
         }
         await S.storage.create_match(match_id, player_ids)
 

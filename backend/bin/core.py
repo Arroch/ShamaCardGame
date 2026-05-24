@@ -115,6 +115,7 @@ class MatchState:
         current_player_index (int): ID текущего игрока
         current_table (list): Карты, выложенные на стол в текущем коны
         current_turn (int): Номер текущего хода (1-9)
+        current_game (int): Номер текущей раздачи
     """
     
     def __init__(self):
@@ -139,6 +140,7 @@ class MatchState:
         self.current_player_index = 0  # Индекс текущего игрока
         self.current_table = []  # Карты на столе
         self.current_turn = 1  # Номер хода
+        self.current_game = 1  # Номер текущей раздачи
                 
     def set_status(self, status: GameConstants.Status):
         """Устанавливает состояние игры через перечисление.
@@ -156,7 +158,13 @@ class MatchState:
             self.current_turn = new_turn
         else:
             self.current_turn += 1
-        
+
+    def set_current_game(self, new_game=None):
+        if new_game:
+            self.current_game = new_game
+        else:
+            self.current_game += 1
+
     def set_trump(self, suit: str) -> tuple:
         self.trump = suit
         self.set_status(GameConstants.Status.TRUMP_SELECTED)
