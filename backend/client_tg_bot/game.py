@@ -67,7 +67,7 @@ async def send_player_cards(player, match_state, is_first: bool = False) -> None
             f"{match_state.players[GameConstants.PLAYER_2_2]} — счёт: "
             f"{match_state.match_scores[GameConstants.TEAM_2]}\n"
             f"Козырь: {GameConstants.SUIT_SYMBOLS[match_state.trump]}, "
-            f"хвалил: {match_state.players[match_state.first_player_index]}\n"
+            f"хвалил: {match_state.players.get(match_state.first_player_index, 'Unknown')}\n"
             f"Номер хода: {match_state.current_turn}\n"
             f"Карты на столе: {match_state.show_table()}\n"
             f"Сейчас ваш ход! Выберите карту:"

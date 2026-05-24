@@ -234,6 +234,7 @@ async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
         "/ping — Проверить работу бота\n"
         "/info — Информация о боте\n"
         "/create_game — Создать новую игру\n"
+        "/fill_bots — Заполнить бота игроками\n"
         "/status — Текущее состояние игры\n"
         "/stats — Ваша статистика\n"
         "/rules — Правила игры"
