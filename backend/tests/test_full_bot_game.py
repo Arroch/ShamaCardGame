@@ -7,6 +7,7 @@ import asyncio
 import sys
 import os
 import json
+import pytest
 from datetime import datetime
 
 # Добавляем путь к проекту
@@ -17,6 +18,7 @@ from bin.constants import GameConstants
 from bin.file_storage import FileStorage
 import client_tg_bot.state as S
 
+@pytest.mark.asyncio
 async def test_full_bot_game():
     """Тестируем полную игру с ботами и сохранение всех ходов"""
 
@@ -198,42 +200,56 @@ async def test_full_bot_game():
 
     # Проверяем матчи
     print("\n🔍 Матчи:")
-    with open('backend/bin/storage/matches/matches.csv', 'r') as f:
-        lines = f.readlines()
-        for line in lines[-3:]:
-            print(f"   {line.strip()}")
+    matches_file = os.path.join('bin', 'storage', 'matches', 'matches.csv')
+    if os.path.exists(matches_file):
+        with open(matches_file, 'r') as f:
+            lines = f.readlines()
+            for line in lines[-3:]:
+                print(f"   {line.strip()}")
+    else:
+        print("   Файл не найден")
 
     # Проверяем раздачи
     print("\n🔍 Раздачи:")
-    with open('backend/bin/storage/games/games.csv', 'r') as f:
-        lines = f.readlines()
-        for line in lines[-3:]:
-            print(f"   {line.strip()}")
+    games_file = os.path.join('bin', 'storage', 'games', 'games.csv')
+    if os.path.exists(games_file):
+        with open(games_file, 'r') as f:
+            lines = f.readlines()
+            for line in lines[-3:]:
+                print(f"   {line.strip()}")
+    else:
+        print("   Файл не найден")
 
     # Проверяем ходы
     print("\n🔍 Ходы:")
-    with open('backend/bin/storage/turns/turns.csv', 'r') as f:
-        lines = f.readlines()
-        for line in lines[-5:]:
-            print(f"   {line.strip()}")
+    turns_file = os.path.join('bin', 'storage', 'turns', 'turns.csv')
+    if os.path.exists(turns_file):
+        with open(turns_file, 'r') as f:
+            lines = f.readlines()
+            for line in lines[-5:]:
+                print(f"   {line.strip()}")
+    else:
+        print("   Файл не найден")
 
     # Проверяем события
     print("\n🔍 События:")
-    import glob
-    event_files = glob.glob('backend/bin/storage/events/*.json')
-    if event_files:
-        print(f"   Событий: {len(event_files)} файлов")
-        # Покажем последние 3 события
-        for event_file in event_files[-3:]:
-            with open(event_file, 'r') as f:
-                event = json.load(f)
-                print(f"   {event['player_username']}: {event['event_type']} - {event.get('data', {})}")
+    events_file = os.path.join('bin', 'storage', 'events', 'events.csv')
+    if os.path.exists(events_file):
+        import csv
+        with open(events_file, 'r') as f:
+            reader = csv.DictReader(f)
+            events = list(reader)
+            print(f"   Событий: {len(events)} записей")
+            for event in events[-3:]:
+                print(f"   {event.get('player_username', 'Unknown')}: {event['event_type']}")
+    else:
+        print("   Файл не найден")
 
     print("\n✅ Тест завершен!")
     print(f"\n📈 Статистика:")
     print(f"   • Сыграно ходов: {turn_count}")
     print(f"   • Сохранено раздач: {match_state.current_game}")
-    print(f"   • Сохранено событий: {len(event_files) if event_files else 0}")
+    print(f"   • Сохранено событий: {len(events) if 'events' in locals() else 0}")
 
 if __name__ == "__main__":
     asyncio.run(test_full_bot_game())

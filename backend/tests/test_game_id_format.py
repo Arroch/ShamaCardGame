@@ -6,6 +6,7 @@
 import asyncio
 import sys
 import os
+import pytest
 
 # Добавляем путь к проекту
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), 'backend'))
@@ -13,6 +14,7 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), 'backend'))
 from bin.core import MatchState, GameEngine
 from bin.file_storage import FileStorage
 
+@pytest.mark.asyncio
 async def test_new_game_id_format():
     """Тестируем новый формат game_id с простыми номерами раздач"""
 
@@ -64,10 +66,14 @@ async def test_new_game_id_format():
 
     # Показываем содержимое файла
     print("\n📊 Содержимое games.csv:")
-    with open('backend/bin/storage/games/games.csv', 'r') as f:
-        lines = f.readlines()
-        for line in lines[-3:]:  # Последние 3 строки
-            print(f"   {line.strip()}")
+    games_file = os.path.join('bin', 'storage', 'games', 'games.csv')
+    if os.path.exists(games_file):
+        with open(games_file, 'r') as f:
+            lines = f.readlines()
+            for line in lines[-3:]:  # Последние 3 строки
+                print(f"   {line.strip()}")
+    else:
+        print("   Файл не найден")
 
 if __name__ == "__main__":
     asyncio.run(test_new_game_id_format())

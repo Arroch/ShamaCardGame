@@ -432,11 +432,12 @@ class DatabaseManager:
         finally:
             self.return_connection(conn)
     
-    def log_event(self, tg_id: Optional[int], event_type: str, event_data: Dict[str, Any]) -> Optional[int]:
+    def log_event(self, tg_id: Optional[int], username: str, event_type: str, event_data: Dict[str, Any]) -> Optional[int]:
         """
         Логирует событие в базе данных.
-        
+
         :param tg_id: Telegram ID игрока (может быть None)
+        :param username: Имя пользователя игрока
         :param event_type: Тип события
         :param event_data: Данные события
         :return: ID события в базе данных или None в случае ошибки
@@ -444,7 +445,7 @@ class DatabaseManager:
         conn = self.get_connection()
         if not conn:
             return None
-        
+
         try:
             with conn.cursor() as cur:
                 cur.execute(
