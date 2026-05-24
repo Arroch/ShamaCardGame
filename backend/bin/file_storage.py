@@ -42,7 +42,7 @@ class FileStorage:
         self.events_dir = os.path.join(self.storage_dir, 'events')
         
         # Создаем директории, если они не существуют
-        for directory in [self.storage_dir, self.players_dir, self.matches_dir, 
+        for directory in [self.storage_dir, self.players_dir, self.matches_dir,
                          self.games_dir, self.turns_dir, self.events_dir]:
             if not os.path.exists(directory):
                 os.makedirs(directory)
@@ -52,6 +52,7 @@ class FileStorage:
         self.matches_file = os.path.join(self.matches_dir, 'matches.csv')
         self.games_file = os.path.join(self.games_dir, 'games.csv')
         self.turns_file = os.path.join(self.turns_dir, 'turns.csv')
+        self.events_file = os.path.join(self.events_dir, 'events.csv')
         
         # Инициализируем файлы, если они не существуют
         self._init_files()
@@ -84,9 +85,16 @@ class FileStorage:
         if not os.path.exists(self.turns_file):
             with open(self.turns_file, 'w', newline='', encoding='utf-8') as f:
                 writer = csv.writer(f)
-                writer.writerow(['match_id', 'game_id', 'turn_id', 'first_player', 
-                                'card_11', 'card_12', 'card_21', 'card_22', 
+                writer.writerow(['match_id', 'game_id', 'turn_id', 'first_player',
+                                'card_11', 'card_12', 'card_21', 'card_22',
                                 'loot_value', 'looting_team', 'created_at'])
+
+        # События (единый CSV файл вместо отдельных JSON)
+        if not os.path.exists(self.events_file):
+            with open(self.events_file, 'w', newline='', encoding='utf-8') as f:
+                writer = csv.writer(f)
+                writer.writerow(['id', 'timestamp', 'game_id', 'event_type',
+                                'player_id', 'player_username', 'card', 'additional_data'])
     
     async def init_database(self):
         """Инициализирует хранилище данных."""
@@ -362,32 +370,39 @@ class FileStorage:
     
     async def log_event(self, player_id: Optional[int], player_username: str, event_type: str, event_data: Dict[str, Any]) -> Optional[int]:
         """
-        Логирует событие в файл.
-        
-        :param tg_id: Telegram ID игрока (может быть None)
+        Логирует событие в единый CSV файл.
+
+        :param player_id: Telegram ID игрока (может быть None)
+        :param player_username: Имя пользователя игрока
         :param event_type: Тип события
         :param event_data: Данные события
         :return: ID события или None в случае ошибки
         """
         try:
-            # Генерируем имя файла для события
+            # Генерируем ID события
             event_id = str(uuid.uuid4())
-            event_file = os.path.join(self.events_dir, f"event_{event_id}.json")
-            
-            # Создаем структуру события
-            event = {
-                'id': event_id,
-                'player_id': player_id,
-                'player_username': player_username,
-                'timestamp': datetime.datetime.now().isoformat(),
-                'event_type': event_type,
-                'event_data': event_data
-            }
-            
-            # Записываем событие в файл
-            with open(event_file, 'w', encoding='utf-8') as f:
-                json.dump(event, f, ensure_ascii=False, indent=2)
-            
+
+            # Извлекаем дополнительные данные из event_data
+            card = event_data.get('card', '')
+            additional_data = json.dumps({k: v for k, v in event_data.items() if k != 'card'}, ensure_ascii=False)
+
+            # Определяем game_id из additional_data или оставляем пустым
+            game_id = event_data.get('match_id', event_data.get('game_id', ''))
+
+            # Записываем событие в CSV файл
+            with open(self.events_file, 'a', newline='', encoding='utf-8') as f:
+                writer = csv.writer(f)
+                writer.writerow([
+                    event_id,
+                    datetime.datetime.now().isoformat(),
+                    game_id,
+                    event_type,
+                    player_id,
+                    player_username,
+                    card,
+                    additional_data
+                ])
+
             logger.info(f"Событие {event_type} залогировано (ID: {event_id})")
             return event_id
         except Exception as e:

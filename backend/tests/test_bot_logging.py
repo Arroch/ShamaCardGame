@@ -6,6 +6,7 @@
 import asyncio
 import sys
 import os
+import pytest
 
 # Добавляем путь к проекту
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), 'backend'))
@@ -14,6 +15,7 @@ from bin.core import MatchState, GameEngine, Card
 from bin.file_storage import FileStorage
 import client_tg_bot.state as S
 
+@pytest.mark.asyncio
 async def test_bot_logging():
     """Тестируем логирование ходов ботов"""
 
@@ -93,29 +95,40 @@ async def test_bot_logging():
     print("\n📊 Проверяем сохраненные данные:")
 
     # Проверяем матчи
-    with open('backend/bin/storage/matches/matches.csv', 'r') as f:
-        lines = f.readlines()
-        print("   Матчи:")
-        for line in lines[-2:]:
-            print(f"     {line.strip()}")
+    matches_file = os.path.join('bin', 'storage', 'matches', 'matches.csv')
+    if os.path.exists(matches_file):
+        with open(matches_file, 'r') as f:
+            lines = f.readlines()
+            print("   Матчи:")
+            for line in lines[-2:]:
+                print(f"     {line.strip()}")
+    else:
+        print("   Матчи: файл не найден")
 
     # Проверяем раздачи
-    with open('backend/bin/storage/games/games.csv', 'r') as f:
-        lines = f.readlines()
-        print("\n   Раздачи:")
-        for line in lines[-2:]:
-            print(f"     {line.strip()}")
+    games_file = os.path.join('bin', 'storage', 'games', 'games.csv')
+    if os.path.exists(games_file):
+        with open(games_file, 'r') as f:
+            lines = f.readlines()
+            print("\n   Раздачи:")
+            for line in lines[-2:]:
+                print(f"     {line.strip()}")
+    else:
+        print("   Раздачи: файл не найден")
 
     # Проверяем события
-    import glob
-    event_files = glob.glob('backend/bin/storage/events/*.json')
-    if event_files:
-        print(f"\n   Событий: {len(event_files)} файлов")
-        # Покажем последнее событие
-        with open(event_files[-1], 'r') as f:
-            import json
-            event = json.load(f)
-            print(f"     Последнее: {event['event_type']} от {event['player_username']}")
+    import csv
+    events_file = os.path.join('bin', 'storage', 'events', 'events.csv')
+    if os.path.exists(events_file):
+        with open(events_file, 'r') as f:
+            reader = csv.DictReader(f)
+            events = list(reader)
+            print(f"\n   Событий: {len(events)} записей")
+            if events:
+                last_event = events[-1]
+                print(f"     Последнее: {last_event['event_type']} от {last_event['player_username']}")
+    else:
+        print("   Событий: файл не найден")
 
     print("\n✅ Тест завершен!")
 
