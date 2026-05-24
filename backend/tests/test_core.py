@@ -18,8 +18,8 @@ class TestCard(unittest.TestCase):
         self.assertEqual(card.value, 11)
         
     def test_card_repr(self):
-        card = Card('diamonds', '10', 10)
-        self.assertEqual(repr(card), '10♦')
+        card = Card('diamonds', 'T', 10)
+        self.assertEqual(repr(card), 'T♦')
         
     def test_card_symbols(self):
         """Проверка корректного отображения символов мастей"""
@@ -208,7 +208,7 @@ class TestGameEngine(unittest.TestCase):
         
         # Проверяем, что все комбинации масть/ранг присутствуют
         suits = ['hearts', 'diamonds', 'clubs', 'spades']
-        ranks = ['6', '7', '8', '9', '10', 'J', 'Q', 'K', 'A']
+        ranks = ['6', '7', '8', '9', 'T', 'J', 'Q', 'K', 'A']
         for suit in suits:
             for rank in ranks:
                 self.assertTrue(any(card.suit == suit and card.rank == rank for card in deck))

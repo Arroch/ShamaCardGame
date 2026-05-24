@@ -50,7 +50,7 @@ class Card:
     def __repr__(self):
         """Строковое представление карты с символами мастей"""
         symbol = GameConstants.SUIT_SYMBOLS.get(self.suit, '?')
-        return f"{self.rank:>2}{symbol}"
+        return f"{self.rank}{symbol}"
     
 class Player:
     def __init__(self, player_id: int, player_name: str):
@@ -89,6 +89,14 @@ class Player:
     def clear_hand(self):
         """Убрать карты на руке у игрока"""
         self.hand = []
+
+    def serialize_hand(self) -> list:
+        """Сериализует руку игрока в список строк (например, ["A♥", "6♣", "J♠"])"""
+        return str(self.hand)
+
+    def deserialize_hand(self, hand_str: list):
+        """Восстанавливает руку игрока из списка строк"""
+        self.hand = [Card.from_string(card_str) for card_str in hand_str]
 
     def shama_calls_increase(self):
         """Увеличить кол-во хваленных козырей"""
@@ -243,9 +251,9 @@ class GameEngine:
     def create_deck() -> list[Card]:
         """Создание колоды из 36 карт"""
         suits = ['hearts', 'diamonds', 'clubs', 'spades']
-        ranks = ['6', '7', '8', '9', '10', 'J', 'Q', 'K', 'A']
+        ranks = ['6', '7', '8', '9', 'T', 'J', 'Q', 'K', 'A']
         values = [0, 0, 0, 0, 10, 2, 3, 4, 11]  # Значения карт
-        
+
         return [Card(suit, rank, values[i]) for suit in suits for i, rank in enumerate(ranks)]
     
     def deal_cards(self):

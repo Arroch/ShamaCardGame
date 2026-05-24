@@ -83,10 +83,10 @@ class TestGameCLI(unittest.TestCase):
         
         # Проверяем, что был вызов print для каждой карты
         expected_calls = [
-            call('1:  A♥', end=' || '),
-            call('2:  K♦', end=' || '),
-            call('3:  6♣', end='\n'),
-            call('4:  Q♠', end=' || '),
+            call('1: A♥', end=' || '),
+            call('2: K♦', end=' || '),
+            call('3: 6♣', end='\n'),
+            call('4: Q♠', end=' || '),
             call()
         ]
         mock_print.assert_has_calls(expected_calls)
@@ -103,7 +103,7 @@ class TestGameCLI(unittest.TestCase):
         state.match_scores = {10: 5, 20: 7}
         
         # Добавим карту на стол
-        state.put_card(11, Card('hearts', '10', 10))
+        state.put_card(11, Card('hearts', 'T', 10))
         
         # Вызываем функцию
         game_cli.show_state(state)
