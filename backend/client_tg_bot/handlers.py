@@ -382,7 +382,7 @@ async def callback_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -
                 winning_player = match_state.players[winning_player_index]
 
                 # Сохраняем ход в хранилище
-                game_id = f"{match_id}_game_1"  # Пока всегда первая игра в матче
+                game_id = match_state.current_game
                 turn_id = match_state.current_turn - 1  # Текущий ход (уже увеличен в complete_turn)
 
                 # Подготавливаем данные карт

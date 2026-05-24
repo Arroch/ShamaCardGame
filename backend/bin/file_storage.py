@@ -217,7 +217,7 @@ class FileStorage:
         except Exception as e:
             logger.error(f"Ошибка при создании раздачи: {e}")
     
-    async def create_turn(self, match_id: int, game_id: int, turn_id: int, first_player: int,
+    async def create_turn(self, match_id: int, game_id, turn_id: int, first_player: int,
                    cards: Dict[int, str], loot_value: int, looting_team: int) -> Optional[int]:
         """
         Сохраняет ход в хранилище.

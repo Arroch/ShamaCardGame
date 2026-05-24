@@ -399,25 +399,21 @@ class GameEngine:
             raise InvalidPlayerAction("У вас нет такой карты!")
         
         # Проверяем, что сделали меньше 9-ти ходов
-        if self.state.current_turn >= 10:
+        if self.state.current_turn > 9:
             raise InvalidPlayerAction("Уже сделали 9 ходов!")
         
         # Проверяем, что на столе меньше 4-х карт
         if len(self.state.current_table) >= 4:
             raise InvalidPlayerAction("На столе уже 4 карты!")
         
-        # Выставляем номер хода
-        if len(self.state.current_table) == 3:
-            self.state.set_current_turn()
-        
         if not self.validate_card_play(player_index, card_index):
             raise InvalidPlayerAction("Недопустимый ход! Необходимо ходить в масть или козырем.")
-        
+
         # Играем карту
         card = player.play_card(card_index)
         self.state.put_card(player_index, card)
         card_count = len(self.state.current_table)
-        
+
         # Устанавливаем новый статус в зависимости от количества карт на столе
         if card_count == 1:
             self.state.set_status(GameConstants.Status.PLAYED_CARD_1)
@@ -427,6 +423,8 @@ class GameEngine:
             self.state.set_status(GameConstants.Status.PLAYED_CARD_3)
         elif card_count == 4:
             self.state.set_status(GameConstants.Status.TRICK_COMPLETED)
+            # Выставляем номер хода ПОСЛЕ завершения кона (4 карты)
+            self.state.set_current_turn()
 
         if GameConstants.Status.PLAYING_CARDS.value < self.state.status.value < GameConstants.Status.TRICK_COMPLETED.value:
             next_player_index = GameConstants.PLAYERS_QUEUE[self.state.current_player_index]
