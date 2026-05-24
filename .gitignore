@@ -43,6 +43,7 @@ Thumbs.db
 
 # Project specific
 backend/bin/storage/
+CLAUDE.md
 
 # Testing
 .pytest_cache/
