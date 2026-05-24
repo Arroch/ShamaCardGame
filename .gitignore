@@ -42,6 +42,7 @@ build/
 Thumbs.db
 
 # Project specific
+*.ipynb
 backend/bin/storage/
 CLAUDE.md
 

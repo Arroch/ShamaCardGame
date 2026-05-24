@@ -159,6 +159,7 @@ async def create_game_command(update: Update, context: ContextTypes.DEFAULT_TYPE
             await update.message.reply_text(
                 f"Игра ожидает игроков:\n{player_list}\n\n"
                 f"Пригласите друзей:\n{invite_link}"
+                f"Или добавьте ботов: /fill_bots"
             )
         else:
             match_state = S.ACTIVE_MATCHES[game_id]
@@ -390,7 +391,7 @@ async def callback_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -
                 for card_data in match_state.current_table:
                     player_pos = card_data['player_index']
                     card = card_data['card']
-                    cards_data[player_pos] = str(card)  # Сохраняем строковое представление
+                    cards_data[player_pos] = card
 
                 await S.storage.create_turn(match_id, game_id, turn_id,
                                           match_state.current_player_index, cards_data,

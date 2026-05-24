@@ -28,7 +28,7 @@ class Card:
         Инициализация карты.
         
         :param suit: масть ('hearts', 'diamonds', 'clubs', 'spades')
-        :param rank: достоинство ('6', '7', '8', '9', '10', 'J', 'Q', 'K', 'A')
+        :param rank: достоинство ('6', '7', '8', '9', 'T', 'J', 'Q', 'K', 'A')
         :param value: стоимость карты в очках
         """
         self.suit = suit
@@ -78,7 +78,7 @@ class Player:
     
     def sort_hand(self, trump=None):
         """Соритирует карты по убыванию силы, после козыря одномастные стоят рядом
-        6♣, J♣,  J♠, J♥, J♦, A/10/K/Q♣, A/10/K/Q♠, A/10/K/Q♥, A/10/K/Q♦
+        6♣, J♣,  J♠, J♥, J♦, A/T/K/Q♣, A/T/K/Q♠, A/T/K/Q♥, A/T/K/Q♦
         """
         self.hand.sort(reverse=True, key=lambda item: item.get_order(trump))
 
@@ -89,14 +89,6 @@ class Player:
     def clear_hand(self):
         """Убрать карты на руке у игрока"""
         self.hand = []
-
-    def serialize_hand(self) -> list:
-        """Сериализует руку игрока в список строк (например, ["A♥", "6♣", "J♠"])"""
-        return str(self.hand)
-
-    def deserialize_hand(self, hand_str: list):
-        """Восстанавливает руку игрока из списка строк"""
-        self.hand = [Card.from_string(card_str) for card_str in hand_str]
 
     def shama_calls_increase(self):
         """Увеличить кол-во хваленных козырей"""
@@ -470,7 +462,7 @@ class GameEngine:
         
         # Козырные карты (кроме валетов и шестерки треф)
         if card.suit == trump:
-            # Порядок козырных: A > 10 > K > Q > 9 > 8 > 7 > 6
+            # Порядок козырных: A > T > K > Q > 9 > 8 > 7 > 6
             return (2, GameConstants.RANK_ORDER.get(card.rank, 0))
         
         # Карты масти первого хода

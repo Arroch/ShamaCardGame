@@ -14,6 +14,7 @@ import logging
 import uuid
 import datetime
 from typing import Dict, List, Optional, Any
+from bin.core import GameEngine, MatchState, Player, Card
 
 # Настройка логирования
 logging.basicConfig(
@@ -181,17 +182,6 @@ class FileStorage:
             logger.info(f"Создан новый матч (ID: {match_id})")
         except Exception as e:
             logger.error(f"Ошибка при создании матча: {e}")
-    
-    @staticmethod
-    def _serialize_hand(hand: list) -> str:
-        """Сериализует список карт (Card или dict) в JSON-строку."""
-        result = []
-        for card in hand:
-            if isinstance(card, dict):
-                result.append(card)
-            else:
-                result.append({"suit": card.suit, "rank": card.rank, "value": card.value})
-        return json.dumps(result)
 
     async def create_game(self, match_id: int, game_id: int, trump: str, shama_player: int,
                    hands: Dict[int, List]) -> Optional[int]:
@@ -205,8 +195,6 @@ class FileStorage:
         :param hands: Словарь {позиция игрока: список Card или dict}
         """
         try:
-            # Fix #10: правильный порядок полей (match_id, game_id, ...)
-            # Fix #10: сериализация Card-объектов через _serialize_hand
             with open(self.games_file, 'a', newline='', encoding='utf-8') as f:
                 writer = csv.writer(f)
                 writer.writerow([
@@ -214,10 +202,10 @@ class FileStorage:
                     game_id,
                     trump,
                     shama_player,
-                    self._serialize_hand(hands.get(11, [])),
-                    self._serialize_hand(hands.get(12, [])),
-                    self._serialize_hand(hands.get(21, [])),
-                    self._serialize_hand(hands.get(22, [])),
+                    str(hands.get(11, [])),
+                    str(hands.get(12, [])),
+                    str(hands.get(21, [])),
+                    str(hands.get(22, [])),
                     datetime.datetime.now().isoformat(),
                 ])
 
@@ -226,7 +214,7 @@ class FileStorage:
             logger.error(f"Ошибка при создании раздачи: {e}")
     
     async def create_turn(self, match_id: int, game_id, turn_id: int, first_player: int,
-                   cards: Dict[int, str], loot_value: int, looting_team: int) -> Optional[int]:
+                   cards: Dict[int, Card], loot_value: int, looting_team: int) -> Optional[int]:
         """
         Сохраняет ход в хранилище.
         
@@ -247,10 +235,10 @@ class FileStorage:
                     game_id,
                     turn_id,
                     first_player,
-                    cards.get(11, ''),
-                    cards.get(12, ''),
-                    cards.get(21, ''),
-                    cards.get(22, ''),
+                    str(cards.get(11, '')),
+                    str(cards.get(12, '')),
+                    str(cards.get(21, '')),
+                    str(cards.get(22, '')),
                     loot_value,
                     looting_team,
                     datetime.datetime.now().isoformat()

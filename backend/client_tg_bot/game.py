@@ -151,18 +151,6 @@ async def _handle_game_completed(match_id: str, match_state, engine) -> None:
     """Обрабатывает завершение раздачи: подсчёт очков, конец матча или новая раздача."""
     _, scores, losed_team, _, losed_points_text = engine.complete_game()
 
-    # Сохраняем завершенную игру в хранилище
-    # Используем простой номер раздачи вместо сложного ID
-    game_id = match_state.current_game
-
-    # Подготавливаем данные рук игроков
-    hands = {}
-    for position, player in match_state.players.items():
-        hands[position] = player.hand  # Сохраняем исходные руки (пустые после раздачи)
-
-    await S.storage.create_game(match_id, game_id, match_state.trump,
-                               match_state.first_player_index, hands)
-
     await send_message_to_all_players(
         match_state,
         f"🏆 Раздача завершена!\n\n"
@@ -225,9 +213,6 @@ async def _handle_game_completed(match_id: str, match_state, engine) -> None:
         for position, player in match_state.players.items():
             hands[position] = player.hand
 
-        await S.storage.create_game(match_id, game_id, match_state.trump,
-                                   match_state.first_player_index, hands)
-
         # Если шама у бота — автоматически выбираем козырь
         shama = match_state.players[match_state.first_player_index]
         if shama.id < 0:
@@ -243,6 +228,9 @@ async def _handle_game_completed(match_id: str, match_state, engine) -> None:
                 player, match_state,
                 is_first=(player_position == match_state.first_player_index),
             )
+
+        await S.storage.create_game(match_id, game_id, match_state.trump,
+                                   match_state.first_player_index, hands)
 
 
 # ---------------------------------------------------------------------------
@@ -344,7 +332,7 @@ async def auto_play_bots(match_id: str, match_state, engine) -> None:
             for card_data in match_state.current_table:
                 player_pos = card_data['player_index']
                 card = card_data['card']
-                cards_data[player_pos] = str(card)
+                cards_data[player_pos] = card
 
             await S.storage.create_turn(match_id, game_id, turn_id,
                                       match_state.current_player_index, cards_data,
