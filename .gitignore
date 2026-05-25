@@ -34,6 +34,7 @@ build/
 *.egg-info/
 
 # Игнорировать конфигурационные файлы
+deploy/shama-bot.service
 .env
 *.env.local
 
