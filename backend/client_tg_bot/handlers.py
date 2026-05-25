@@ -380,7 +380,7 @@ async def callback_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -
                 # Подготавливаем данные карт для сохранения, так как в complete_turn стол очиститься
                 game_id = match_state.current_game
                 turn_id = match_state.current_turn
-                first_player = match_state.current_table
+                first_player = match_state.current_table[0]['player_index']
                 cards_data = {}
                 for card_data in match_state.current_table:
                     player_pos = card_data['player_index']
