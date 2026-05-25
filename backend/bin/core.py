@@ -64,6 +64,7 @@ class Player:
         self.name = player_name
         self.hand = []  # Карты на руках
         self.stat = {
+            'win_games': 0,
             'total_shama_calls': 0,
             'total_tricks': 0,
         }  # Статистика в текущей игре
@@ -93,6 +94,10 @@ class Player:
     def shama_calls_increase(self):
         """Увеличить кол-во хваленных козырей"""
         self.stat['total_shama_calls'] += 1
+
+    def win_games_increase(self):
+        """Увеличить кол-во хваленных козырей"""
+        self.stat['win_games'] += 1
 
     def count_tricks_increase(self):
         """Увеличить кол-во выигранных взяток"""
@@ -525,33 +530,39 @@ class GameEngine:
             tuple: (scores, losed_team, losed_points, losed_points_text)
         """
         shama_team = first_player_index // 10 * 10
-        losed_team = 10 if scores[10] < scores[20] or scores[10] == 60 and shama_team == 10 else 20
+        losed_team, won_team = 10, 20 if scores[10] < scores[20] or scores[10] == 60 and shama_team == 10 else 20, 10
         if shama_team == losed_team:
             if scores[losed_team] == 0:
-                return scores, losed_team, 12, 'сразу 12 очков'
+                return scores, losed_team, won_team, 12, 'сразу 12 очков'
             elif scores[losed_team] < 30:
-                return scores, losed_team, 6, 'шесть очков'
+                return scores, losed_team, won_team, 6, 'шесть очков'
             elif scores[losed_team] < 60:
-                return scores, losed_team, 3, 'три очка'
+                return scores, losed_team, won_team, 3, 'три очка'
             else:
-                return scores, losed_team, 2, 'два очка'
+                return scores, losed_team, won_team, 2, 'два очка'
         else:
             if scores[losed_team] == 0:
-                return scores, losed_team, 6, 'шесть очков'
+                return scores, losed_team, won_team, 6, 'шесть очков'
             elif scores[losed_team] < 30:
-                return scores, losed_team, 3, 'три очка'
+                return scores, losed_team, won_team, 3, 'три очка'
             else:
-                return scores, losed_team, 1, 'одно очко'
+                return scores, losed_team, won_team, 1, 'одно очко'
 
     def complete_game(self):
         """Подсчет очков и определение победителя раздачи."""
         # Проверка завершения игры (9 взяток)
         if self.state.current_turn > 9:
-            scores, losed_team, losed_points, losed_points_text = self.calculate_game_points(
+            scores, losed_team, won_team, losed_points, losed_points_text = self.calculate_game_points(
                 self.state.first_player_index, self.state.game_scores.copy()
             )
+            # Увеличиваем очки проигравшей команды
             self.state.increase_score(losed_team, losed_points, 'match')
+            # Увеличиваем выигранные раздачи игроков
+            self.state.players[won_team + 1].win_games_increase()
+            self.state.players[won_team + 2].win_games_increase()
+            # Обнуляем взятки команд
             self.state.clear_score('game')
+            # Проверка продолжения матча
             if self.state.match_scores[losed_team] < 12:
                 self.state.set_status(GameConstants.Status.NEW_DEAL_READY)
                 self.state.set_current_turn(1)

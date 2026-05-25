@@ -120,7 +120,7 @@ async def test_full_bot_game():
                 print(f"   🤖 {player.name} сыграл: {card}")
 
                 # Логируем ход бота
-                await S.storage.log_event(player.id, player.name, "play_card", {"card": str(card)})
+                await S.storage.create_event(player.id, player.name, "play_card", {"card": str(card)})
 
                 # Если кон завершен (4 карты на столе)
                 if match_state.status == GameConstants.Status.TRICK_COMPLETED:

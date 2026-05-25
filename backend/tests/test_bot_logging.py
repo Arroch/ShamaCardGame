@@ -88,7 +88,7 @@ async def test_bot_logging():
     print(f"   Бот {player.name} сыграл: {card}")
 
     # Логируем ход бота
-    await S.storage.log_event(player.id, player.name, "play_card", {"card": str(card)})
+    await S.storage.create_event(player.id, player.name, "play_card", {"card": str(card)})
     print("✅ Ход бота залогирован")
 
     # Проверяем сохраненные данные

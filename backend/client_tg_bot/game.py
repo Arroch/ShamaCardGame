@@ -184,15 +184,14 @@ async def _handle_game_completed(match_id: str, match_state, engine) -> None:
 
         await S.storage.update_match(match_id, winning_team, team1_score, team2_score)
 
-        del S.ACTIVE_MATCHES[match_id]
-        del S.MATCH_ENGINES[match_id]
-
         for pos, player in match_state.players.items():
             if player.id > 0:  # Статистика только для живых игроков
                 player_team = pos // 10 * 10
                 await S.storage.update_player_stats(
                     player.id,
                     won=player_team == winning_team,
+                    match_state.current_game,
+                    win_games=player.stat.get('win_games', 0),
                     tricks=player.stat.get('total_tricks', 0),
                     shama_calls=player.stat.get('total_shama_calls', 0),
                 )
@@ -200,6 +199,9 @@ async def _handle_game_completed(match_id: str, match_state, engine) -> None:
         for pid in list(S.PLAYER_TO_GAME.keys()):
             if S.PLAYER_TO_GAME[pid]['id'] == match_id:
                 del S.PLAYER_TO_GAME[pid]
+
+        del S.ACTIVE_MATCHES[match_id]
+        del S.MATCH_ENGINES[match_id]
 
     elif match_state.status == GameConstants.Status.NEW_DEAL_READY:
         await send_message_to_all_players(match_state, "🃏 Новая раздача! Карты сдаются...")
@@ -287,7 +289,7 @@ async def auto_play_bots(match_id: str, match_state, engine) -> None:
                 match_state, f"🤖 {shama.name} объявляет козырь: {sym}"
             )
             # Логируем выбор козыря ботом
-            await S.storage.log_event(shama.id, shama.name, "set_trump", {"trump": trump})
+            await S.storage.create_event(shama.id, shama.name, "set_trump", {"trump": trump})
             continue  # Проверяем следующий статус
 
         if status not in _playing:
@@ -316,7 +318,7 @@ async def auto_play_bots(match_id: str, match_state, engine) -> None:
         await send_message_to_all_players(match_state, f"🤖 {player.name} сыграл: {card}")
 
         # Логируем ход бота в хранилище событий
-        await S.storage.log_event(player.id, player.name, "play_card", {"card": str(card)})
+        await S.storage.create_event(player.id, player.name, "play_card", {"card": str(card)})
 
         if match_state.status == GameConstants.Status.TRICK_COMPLETED:
             # Подготавливаем данные карт для сохранения, так как в complete_turn стол очиститься

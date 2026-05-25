@@ -78,7 +78,7 @@ async def start_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
                 'status': 'waiting',
                 'position': None,
             }
-            await S.storage.log_event(player_id, username, "join_match", {"match_id": match_id})
+            await S.storage.create_event(player_id, username, "join_match", {"match_id": match_id})
 
             team1 = S.WAITING_MATCHES[match_id]['team_1']
             team2 = S.WAITING_MATCHES[match_id]['team_2']
@@ -197,7 +197,7 @@ async def create_game_command(update: Update, context: ContextTypes.DEFAULT_TYPE
     }
 
     invite_link = f"https://t.me/{bot_username}?start=join_{match_id}"
-    await S.storage.log_event(player_id, username, "create_game", {"match_id": match_id})
+    await S.storage.create_event(player_id, username, "create_game", {"match_id": match_id})
     await update.message.reply_text(
         f"🎮 {first_name} создал(а) новую игру!\n\n"
         f"Участники: • {first_name}\n\n"
@@ -373,7 +373,7 @@ async def callback_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -
                 text=f"{query.message.text}\n\nВы выбрали: {card}",
                 reply_markup=None,
             )
-            await S.storage.log_event(player_id, username, "play_card", {"card": str(card)})
+            await S.storage.create_event(player_id, username, "play_card", {"card": str(card)})
             await send_message_to_all_players(match_state, f"🃏 {player.name} сыграл: {card}")
 
             if status == GameConstants.Status.TRICK_COMPLETED:
@@ -449,7 +449,7 @@ async def callback_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -
                 reply_markup=None,
             )
             # Fix #8: event_data — словарь
-            await S.storage.log_event(player_id, username, "set_trump", {"trump": trump})
+            await S.storage.create_event(player_id, username, "set_trump", {"trump": trump})
             await send_message_to_all_players(
                 match_state,
                 f"🃏 {player_name} выбрал козырь: {suit_symbol} ({suit_labels.get(suit, '?')})\n"
@@ -575,7 +575,7 @@ async def leave_game_command(update: Update, context: ContextTypes.DEFAULT_TYPE)
     # Удаляем из глобального состояния
     del S.PLAYER_TO_GAME[player_id]
 
-    await S.storage.log_event(player_id, update.effective_user.username, "leave_game", {"match_id": match_id})
+    await S.storage.create_event(player_id, update.effective_user.username, "leave_game", {"match_id": match_id})
 
     # Уведомляем остальных игроков
     remaining_players = S.WAITING_MATCHES[match_id]['players']

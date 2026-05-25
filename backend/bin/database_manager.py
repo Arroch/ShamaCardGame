@@ -432,7 +432,7 @@ class DatabaseManager:
         finally:
             self.return_connection(conn)
     
-    def log_event(self, tg_id: Optional[int], username: str, event_type: str, event_data: Dict[str, Any]) -> Optional[int]:
+    def create_event(self, tg_id: Optional[int], username: str, event_type: str, event_data: Dict[str, Any]) -> Optional[int]:
         """
         Логирует событие в базе данных.
 
