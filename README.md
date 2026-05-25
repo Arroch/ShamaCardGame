@@ -140,6 +140,8 @@ sudo bash deploy/install.sh
 
 # Управление:
 systemctl status shama-bot
+sudo systemctl restart shama-bot
+sudo systemctl stop shama-bot
 journalctl -u shama-bot -f
 ```
 
