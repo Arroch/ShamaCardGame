@@ -248,7 +248,7 @@ class FileStorage:
         except Exception as e:
             logger.error(f"Ошибка при сохранении хода: {e}")
     
-    async def update_match(self, match_id: int, winning_team: int, team1_score: int, team2_score: int) -> bool:
+    async def update_match(self, match_id: str, winning_team: int, team1_score: int, team2_score: int) -> bool:
         """
         Обновляет информацию о матче после его завершения.
         

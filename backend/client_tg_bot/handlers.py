@@ -353,7 +353,6 @@ async def callback_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -
     # Выбор карты
     # -----------------------------------------------------------------------
     if data.startswith('card_'):
-        # Fix #4: guard-проверка
         game = _get_active_game(player_id)
         if game is None:
             await query.edit_message_text("Вы не состоите в активной игре.")
@@ -374,27 +373,26 @@ async def callback_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -
                 text=f"{query.message.text}\n\nВы выбрали: {card}",
                 reply_markup=None,
             )
-            # Fix #8: event_data — словарь
             await S.storage.log_event(player_id, username, "play_card", {"card": str(card)})
             await send_message_to_all_players(match_state, f"🃏 {player.name} сыграл: {card}")
 
             if status == GameConstants.Status.TRICK_COMPLETED:
-                _, winning_card, winning_player_index, trick_points = match_engine.complete_turn()
-                winning_player = match_state.players[winning_player_index]
-
-                # Сохраняем ход в хранилище
+                # Подготавливаем данные карт для сохранения, так как в complete_turn стол очиститься
                 game_id = match_state.current_game
-                turn_id = match_state.current_turn - 1  # Текущий ход (уже увеличен в complete_turn)
-
-                # Подготавливаем данные карт
+                turn_id = match_state.current_turn
+                first_player = match_state.current_table
                 cards_data = {}
                 for card_data in match_state.current_table:
                     player_pos = card_data['player_index']
                     card = card_data['card']
                     cards_data[player_pos] = card
 
+                _, winning_card, winning_player_index, trick_points = match_engine.complete_turn()
+                winning_player = match_state.players[winning_player_index]
+
+                # Сохраняем ход в хранилище
                 await S.storage.create_turn(match_id, game_id, turn_id,
-                                          match_state.current_player_index, cards_data,
+                                          first_player, cards_data,
                                           trick_points, winning_player_index // 10 * 10)
 
                 await send_message_to_all_players(

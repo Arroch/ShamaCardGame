@@ -169,6 +169,8 @@ async def _handle_game_completed(match_id: str, match_state, engine) -> None:
         engine.complete_match()
         losing_team  = 10 if match_state.match_scores[10] >= 12 else 20
         winning_team = 20 if losing_team == 10 else 10
+        team1_score = match_state.match_scores[10]
+        team2_score = match_state.match_scores[20]
 
         await send_message_to_all_players(
             match_state,
@@ -176,9 +178,11 @@ async def _handle_game_completed(match_id: str, match_state, engine) -> None:
             f"Победила Команда {winning_team // 10}: "
             f"{match_state.players[winning_team + 1]} и "
             f"{match_state.players[winning_team + 2]}\n"
-            f"Финальный счёт: {match_state.match_scores[10]} — {match_state.match_scores[20]}\n\n"
+            f"Финальный счёт: {team1_score} — {team2_score}\n\n"
             f"/create_game — новая игра.",
         )
+
+        await S.storage.update_match(match_id, winning_team, team1_score, team2_score)
 
         del S.ACTIVE_MATCHES[match_id]
         del S.MATCH_ENGINES[match_id]
@@ -205,7 +209,6 @@ async def _handle_game_completed(match_id: str, match_state, engine) -> None:
         match_state.set_current_game()
 
         # Сохраняем новую игру в хранилище
-        # Используем простой номер раздачи вместо сложного ID
         game_id = match_state.current_game
 
         # Подготавливаем данные рук игроков
@@ -316,27 +319,29 @@ async def auto_play_bots(match_id: str, match_state, engine) -> None:
         await S.storage.log_event(player.id, player.name, "play_card", {"card": str(card)})
 
         if match_state.status == GameConstants.Status.TRICK_COMPLETED:
-            _, winning_card, winning_player_idx, trick_points = engine.complete_turn()
-            winning_player = match_state.players[winning_player_idx]
-            await send_message_to_all_players(
-                match_state,
-                f"👑 {winning_player.name} забирает взятку ({winning_card}, {trick_points} очков)",
-            )
-
-            # Сохраняем ход в хранилище (аналогично логике в handlers.py)
+            # Подготавливаем данные карт для сохранения, так как в complete_turn стол очиститься
             game_id = match_state.current_game
-            turn_id = match_state.current_turn - 1  # Текущий ход (уже увеличен в complete_turn)
-
-            # Подготавливаем данные карт
+            turn_id = match_state.current_turn
+            first_player = match_state.current_table
             cards_data = {}
             for card_data in match_state.current_table:
                 player_pos = card_data['player_index']
                 card = card_data['card']
                 cards_data[player_pos] = card
 
+            _, winning_card, winning_player_idx, trick_points = engine.complete_turn()
+            winning_player = match_state.players[winning_player_idx]
+
+            # Сохраняем ход в хранилище (аналогично логике в handlers.py)
             await S.storage.create_turn(match_id, game_id, turn_id,
-                                      match_state.current_player_index, cards_data,
+                                      first_player, cards_data,
                                       trick_points, winning_player_idx // 10 * 10)
+            
+            await send_message_to_all_players(
+                match_state,
+                f"👑 {winning_player.name} забирает взятку с {winning_card}! "
+                f"Очков: {trick_points}",
+            )
 
             if match_state.status == GameConstants.Status.GAME_COMPLETED:
                 await _handle_game_completed(match_id, match_state, engine)
@@ -384,6 +389,15 @@ async def start_game(match_id: str, players: dict) -> None:
             match_state.players[GameConstants.PLAYER_2_1].name,
             match_state.players[GameConstants.PLAYER_2_2].name,
         ]
+
+        # Сохраняем новую игру в хранилище
+        game_id = match_state.current_game
+
+        # Подготавливаем данные рук игроков
+        hands = {}
+        for position, player in match_state.players.items():
+            hands[position] = player.hand
+
         start_text = (
             f"🎮 Игра начинается!\n\n"
             f"Команда 1: {', '.join(team1)}\n"
@@ -410,6 +424,9 @@ async def start_game(match_id: str, players: dict) -> None:
                 player, match_state,
                 is_first=(player_position == match_state.first_player_index),
             )
+
+        await S.storage.create_game(match_id, game_id, match_state.trump,
+                                   match_state.first_player_index, hands)
 
         # Если первый ход за ботом — запускаем автоигру
         current = match_state.players.get(match_state.current_player_index)
