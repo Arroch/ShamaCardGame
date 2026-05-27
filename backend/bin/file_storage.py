@@ -160,16 +160,16 @@ class FileStorage:
             logger.error(f"Ошибка при получении информации об игроке: {e}")
             return None
     
-    async def update_player_stats(self, player_id: int, won: bool, games: int, win_games: int,
+    async def update_player_stats(self, player_id: int, win_matches: int, games: int, win_games: int,
                     tricks: int, shama_calls: int = 0):
         """
         Обновляет статистику игрока.
         
         :param player_id: ID игрока в хранилище
-        :param won: True если игрок выиграл матч
+        :param win_matches: Кол-во побед матчах
+        :param win_games: Кол-во побед в раздачах
         :param tricks: Количество взяток, взятых игроком
         :param shama_calls: Количество раз, когда игрок объявлял козырь
-        :return: True в случае успеха, False в случае ошибки
         """
         try:
             # Читаем текущие данные об игроках
@@ -184,7 +184,7 @@ class FileStorage:
                 if int(player['id']) == player_id:
                     player['matches'] = int(player['matches']) + 1
                     player['games'] = int(player['games']) + games
-                    player['win_matches'] = int(player['win_matches']) + int(won)
+                    player['win_matches'] = int(player['win_matches']) + win_matches
                     player['win_games'] =int(player['win_games']) + win_games
                     player['total_tricks'] = int(player['total_tricks']) + tricks
                     player['total_shama_calls'] = int(player['total_shama_calls']) + shama_calls
@@ -325,9 +325,9 @@ class FileStorage:
             
             # Перезаписываем файл с обновленными данными
             with open(self.matches_file, 'w', newline='', encoding='utf-8') as f:
-                writer = csv.DictWriter(f, fieldnames=matches[0].keys())
+                writer = csv.DictWriter(f, fieldnames=games[0].keys())
                 writer.writeheader()
-                writer.writerows(matches)
+                writer.writerows(games)
             
             logger.info(f"Обновлена информация о раздаче (ID: {game_id} в матче {match_id})")
         except Exception as e:

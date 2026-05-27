@@ -19,7 +19,6 @@ yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
-backend/game_logs.json
 
 # Игнорировать зависимости
 node_modules/
@@ -45,7 +44,7 @@ Thumbs.db
 # Project specific
 *.ipynb
 backend/bin/storage/
-backups/
+local_files/
 CLAUDE.md
 
 # Testing

@@ -189,8 +189,8 @@ async def _handle_game_completed(match_id: str, match_state, engine) -> None:
                 player_team = pos // 10 * 10
                 await S.storage.update_player_stats(
                     player.id,
-                    won=player_team == winning_team,
-                    match_state.current_game,
+                    win_matches=int(player_team == winning_team),
+                    games=match_state.current_game,
                     win_games=player.stat.get('win_games', 0),
                     tricks=player.stat.get('total_tricks', 0),
                     shama_calls=player.stat.get('total_shama_calls', 0),
@@ -221,21 +221,20 @@ async def _handle_game_completed(match_id: str, match_state, engine) -> None:
         # Если шама у бота — автоматически выбираем козырь
         shama = match_state.players[match_state.first_player_index]
         if shama.id < 0:
-            trump = _bot_pick_trump(match_state)
-            engine.set_trump_by_player(match_state.first_player_index, trump)
+            _, player_name, trump = engine.set_trump_by_player(match_state.first_player_index,  _bot_pick_trump(match_state))
             sym = GameConstants.SUIT_SYMBOLS[trump]
             await send_message_to_all_players(
-                match_state, f"🤖 {shama.name} объявляет козырь: {sym}"
+                match_state, f"🤖 {player_name} объявляет козырь: {sym}"
             )
+
+            await S.storage.create_game(match_id, game_id, match_state.trump,
+                                   match_state.first_player_index, hands)
 
         for player_position, player in match_state.players.items():
             await send_player_cards(
                 player, match_state,
                 is_first=(player_position == match_state.first_player_index),
             )
-
-        await S.storage.create_game(match_id, game_id, match_state.trump,
-                                   match_state.first_player_index, hands)
 
 
 # ---------------------------------------------------------------------------
@@ -279,18 +278,22 @@ async def auto_play_bots(match_id: str, match_state, engine) -> None:
 
         # Ожидание козыря
         if status == GameConstants.Status.WAITING_TRUMP:
+            suit_labels = {
+                'clubs': 'трефы', 'diamonds': 'бубны',
+                'hearts': 'червы', 'spades': 'пики',
+            }
             shama = match_state.players[match_state.first_player_index]
             if shama.id >= 0:
                 break  # Живой игрок выбирает козырь — выходим
-            trump = _bot_pick_trump(match_state)
-            engine.set_trump_by_player(match_state.first_player_index, trump)
-            sym = GameConstants.SUIT_SYMBOLS[trump]
+            trump = engine.set_trump_by_player(match_state.first_player_index, _bot_pick_trump(match_state))
+            suit_symbol = GameConstants.SUIT_SYMBOLS[trump]
             await send_message_to_all_players(
-                match_state, f"🤖 {shama.name} объявляет козырь: {sym}"
+                match_state,
+                f"🤖 {shama.name} выбрал козырь: {suit_symbol} ({suit_labels.get(trump, '?')})\n"
+                f"Ходит игрок с шамой.",
             )
             # Логируем выбор козыря ботом
             await S.storage.create_event(shama.id, shama.name, "set_trump", {"trump": trump})
-            continue  # Проверяем следующий статус
 
         if status not in _playing:
             break
@@ -299,9 +302,8 @@ async def auto_play_bots(match_id: str, match_state, engine) -> None:
         current = match_state.players.get(current_idx)
 
         # Ход живого игрока — отправляем карты и выходим
-        if current is None or current.id >= 0:
-            if current:
-                await send_player_cards(current, match_state)
+        if current and current.id > 0:
+            await send_player_cards(current, match_state)
             break
 
         # Бот выбирает первую допустимую карту
@@ -361,7 +363,7 @@ async def start_game(match_id: str, players: dict) -> None:
     try:
         match_state = MatchState()
         for player_data in players.values():
-            player = Player(player_data['id'], player_data['name'])
+            player = Player(player_data['id'], player_data['username'], player_data['name'])
             position = S.PLAYER_TO_GAME[player_data['id']]['position']
             match_state.add_player(position, player)
             S.PLAYER_TO_GAME[player_data['id']]['status'] = 'active'
@@ -392,7 +394,6 @@ async def start_game(match_id: str, players: dict) -> None:
             match_state.players[GameConstants.PLAYER_2_2].name,
         ]
 
-        # Сохраняем новую игру в хранилище
         game_id = match_state.current_game
 
         # Подготавливаем данные рук игроков
@@ -406,18 +407,8 @@ async def start_game(match_id: str, players: dict) -> None:
             f"Команда 2: {', '.join(team2)}\n\n"
             f"Карты розданы."
         )
-        for chat_id, pd in players.items():
-            if pd['id'] > 0:
-                await S._bot.send_message(chat_id=chat_id, text=start_text)
-
-        # Если шама у бота — автовыбор козыря до отправки карт
-        shama = match_state.players[match_state.first_player_index]
-        if shama.id < 0:
-            trump = _bot_pick_trump(match_state)
-            engine.set_trump_by_player(match_state.first_player_index, trump)
-            sym = GameConstants.SUIT_SYMBOLS[trump]
-            await send_message_to_all_players(
-                match_state, f"🤖 {shama.name} объявляет козырь: {sym}"
+        await send_message_to_all_players(
+                match_state, start_text
             )
 
         # Отправляем карты живым игрокам
@@ -427,7 +418,23 @@ async def start_game(match_id: str, players: dict) -> None:
                 is_first=(player_position == match_state.first_player_index),
             )
 
-        await S.storage.create_game(match_id, game_id, match_state.trump,
+        # Если шама у бота — автовыбор козыря
+        shama = match_state.players[match_state.first_player_index]
+        if shama.id < 0:
+            suit_labels = {
+                'clubs': 'трефы', 'diamonds': 'бубны',
+                'hearts': 'червы', 'spades': 'пики',
+            }
+            trump = engine.set_trump_by_player(match_state.first_player_index, _bot_pick_trump(match_state))
+            suit_symbol = GameConstants.SUIT_SYMBOLS[trump]
+            await send_message_to_all_players(
+                match_state,
+                f"🤖 {player_name} выбрал козырь: {suit_symbol} ({suit_labels.get(trump, '?')})\n"
+                f"Ходит игрок с шамой.",
+            )
+
+            # Сохраняем новую раздачу в хранилище
+            await S.storage.create_game(match_id, game_id, match_state.trump,
                                    match_state.first_player_index, hands)
 
         # Если первый ход за ботом — запускаем автоигру

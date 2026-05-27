@@ -53,7 +53,7 @@ class Card:
         return f"{self.rank}{symbol}"
     
 class Player:
-    def __init__(self, player_id: int, player_name: str):
+    def __init__(self, player_id: int, player_username: str, player_name: str):
         """
         Инициализация игрока.
         
@@ -62,6 +62,7 @@ class Player:
         """
         self.id = player_id
         self.name = player_name
+        self.username = player_username
         self.hand = []  # Карты на руках
         self.stat = {
             'win_games': 0,
