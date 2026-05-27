@@ -43,9 +43,8 @@ deploy/shama-bot.service
 Thumbs.db
 
 # Project specific
-*.ipynb
 backend/bin/storage/
-backups/storage/
+local_files/
 CLAUDE.md
 
 # Testing
