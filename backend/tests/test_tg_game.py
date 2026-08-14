@@ -202,8 +202,8 @@ class TestTelegramGameLogic(unittest.TestCase):
         # Настраиваем руку бота
         from bin.core import Card
         bot_player.hand = [
-            Card('hearts', 'A', 11),
-            Card('clubs', '6', 0)
+            Card('hearts', 'A', 11, 15),
+            Card('clubs', '6', 0, 35)
         ]
 
         S.ACTIVE_MATCHES["test_match_001"] = self.match_state

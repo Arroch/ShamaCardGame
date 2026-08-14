@@ -23,7 +23,7 @@ class InvalidPlayerAction(GameException):
     pass
 
 class Card:
-    def __init__(self, suit: str, rank: str, value: int):
+    def __init__(self, suit: str, rank: str, value: int, mask):
         """
         Инициализация карты.
         
@@ -34,18 +34,19 @@ class Card:
         self.suit = suit
         self.rank = rank
         self.value = value
+        self.mask = mask
 
     def get_order(self, trump=None):
 
         if self.rank == '6' and self.suit == 'clubs':
-            first_rank = 3
+            first_rank = 300
         elif self.rank == 'J':
-            first_rank = 2
+            first_rank = 200
         elif self.suit == trump:
-            first_rank = 1
+            first_rank = 100
         else:
             first_rank = 0
-        return (first_rank, GameConstants.SUIT_ORDER.get(self.suit, 0), GameConstants.RANK_ORDER.get(self.rank, 0))
+        return first_rank + self.mask
         
     def __repr__(self):
         """Строковое представление карты с символами мастей"""
@@ -85,6 +86,28 @@ class Player:
     def get_hand(self) -> list:
         """Показать карты на руке у игрока"""
         return self.hand
+    
+    def get_hand_mask(self):
+        mask = 0
+
+        for x in self.hand:
+            if x.mask < 0 or x.mask >= 36:
+                raise ValueError("Число должно быть от 0 до 35")
+
+            mask |= 1 << x.mask
+
+        if mask.bit_count() != 9:
+            raise ValueError("Должно быть ровно 9 разных чисел")
+
+        return mask
+
+
+    def decode_hand_mask(mask):
+        return [i for i in range(36) if mask & (1 << i)]
+
+
+    def contains(mask, number):
+        return (mask & (1 << number)) != 0
         
     def clear_hand(self):
         """Убрать карты на руке у игрока"""
@@ -242,11 +265,7 @@ class GameEngine:
     @staticmethod
     def create_deck() -> list[Card]:
         """Создание колоды из 36 карт"""
-        suits = ['hearts', 'diamonds', 'clubs', 'spades']
-        ranks = ['6', '7', '8', '9', 'T', 'J', 'Q', 'K', 'A']
-        values = [0, 0, 0, 0, 10, 2, 3, 4, 11]  # Значения карт
-
-        return [Card(suit, rank, values[i]) for suit in suits for i, rank in enumerate(ranks)]
+        return [Card(card['suit'], card['rank'], card['value'], card['mask']) for card in GameConstants.CARDS_DECK]
     
     def deal_cards(self):
         """Раздача карт игрокам (по 9 карт каждому).
@@ -448,29 +467,10 @@ class GameEngine:
             trump: Текущий козырь
             
         Returns:
-            tuple: (приоритет_группы, приоритет_внутри_группы)
-                  для сравнения карт между собой
+            int: сила карты относительно всех карт в колоде в текущей раздачи, смещаем на 50 для масти первого хода
         """
-        # Шестерка треф - самая сильная карта в игре
-        if card.suit == GameConstants.CLUBS and card.rank == '6':
-            return (4, 0)  # Максимальный приоритет
-        
-        # Валеты (всегда козыри, независимо от козырной масти)
-        if card.rank == 'J':
-            # Порядок валетов: ♣ > ♠ > ♥ > ♦
-            return (3, GameConstants.SUIT_ORDER.get(card.suit, 0))
-        
-        # Козырные карты (кроме валетов и шестерки треф)
-        if card.suit == trump:
-            # Порядок козырных: A > T > K > Q > 9 > 8 > 7 > 6
-            return (2, GameConstants.RANK_ORDER.get(card.rank, 0))
-        
-        # Карты масти первого хода
-        if card.suit == first_suit:
-            return (1, GameConstants.RANK_ORDER.get(card.rank, 0))
-        
-        # Остальные карты (младше всех)
-        return (0, 0)
+        card_order = card.get_order(trump)
+        return card_order + 50 if card.suit == first_suit else card_order
     
     def complete_turn(self):
         """Завершение кона и определение победителя.

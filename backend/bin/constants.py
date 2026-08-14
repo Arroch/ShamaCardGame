@@ -13,20 +13,6 @@ class GameConstants:
     # Константы для идентификации команд
     TEAM_1 = 10
     TEAM_2 = 20
-
-    # Константы для мастей
-    HEARTS = 'hearts'  # Червы
-    DIAMONDS = 'diamonds'  # Бубны
-    CLUBS = 'clubs'  # Трефы
-    SPADES = 'spades'  # Пики
-
-    # Маппинг мастей на символы
-    SUIT_SYMBOLS = {
-        HEARTS: '♥',
-        DIAMONDS: '♦',
-        CLUBS: '♣',
-        SPADES: '♠'
-    }
     
     # Константы для идентификации игроков
     PLAYER_1_1 = 11  # Первый игрок первой команды
@@ -62,23 +48,56 @@ class GameConstants:
         PLAYER_1_2: PLAYER_2_2,  # После 2-го игрока 1-й команды ходит 2-й игрок 2-й команды
         PLAYER_2_2: PLAYER_1_1,  # После 2-го игрока 2-й команды ходит 1-й игрок 1-й команды
     }
-    
-    # Порядок мастей (для валетов)
-    SUIT_ORDER = {
-        CLUBS: 3,     # Трефы (самая сильная масть для валетов)
-        SPADES: 2,    # Пики
-        HEARTS: 1,    # Червы
-        DIAMONDS: 0,  # Бубны (самая слабая масть для валетов)
+
+    # Константы для мастей
+    HEARTS = 'hearts'       # Червы
+    DIAMONDS = 'diamonds'   # Бубны
+    CLUBS = 'clubs'         # Трефы
+    SPADES = 'spades'       # Пики
+
+    # Маппинг мастей на символы
+    SUIT_SYMBOLS = {
+        HEARTS: '♥',
+        DIAMONDS: '♦',
+        CLUBS: '♣',
+        SPADES: '♠'
     }
-    
-    # Порядок рангов для карт одной масти
-    RANK_ORDER = {
-        'A': 7,    # Туз (самый сильный ранг)
-        'T': 6,   # Десятка
-        'K': 5,    # Король
-        'Q': 4,    # Дама
-        '9': 3,    # Девятка
-        '8': 2,    # Восьмерка
-        '7': 1,    # Семерка
-        '6': 0,    # Шестерка (самый слабый ранг в обычной ситуации)
-    }
+
+    CARDS_DECK = [
+        {'rank': '6', 'suit': DIAMONDS, 'value': 0,     'mask': 0},
+        {'rank': '7', 'suit': DIAMONDS, 'value': 0,     'mask': 1},
+        {'rank': '8', 'suit': DIAMONDS, 'value': 0,     'mask': 2},
+        {'rank': '9', 'suit': DIAMONDS, 'value': 0,     'mask': 3},
+        {'rank': 'Q', 'suit': DIAMONDS, 'value': 3,     'mask': 4},
+        {'rank': 'K', 'suit': DIAMONDS, 'value': 4,     'mask': 5},
+        {'rank': 'T', 'suit': DIAMONDS, 'value': 10,    'mask': 6},
+        {'rank': 'A', 'suit': DIAMONDS, 'value': 11,    'mask': 7},
+        {'rank': '6', 'suit': HEARTS,   'value': 0,     'mask': 8},
+        {'rank': '7', 'suit': HEARTS,   'value': 0,     'mask': 9},
+        {'rank': '8', 'suit': HEARTS,   'value': 0,     'mask': 10},
+        {'rank': '9', 'suit': HEARTS,   'value': 0,     'mask': 11},
+        {'rank': 'Q', 'suit': HEARTS,   'value': 3,     'mask': 12},
+        {'rank': 'K', 'suit': HEARTS,   'value': 4,     'mask': 13},
+        {'rank': 'T', 'suit': HEARTS,   'value': 10,    'mask': 14},
+        {'rank': 'A', 'suit': HEARTS,   'value': 11,    'mask': 15},
+        {'rank': '6', 'suit': SPADES,   'value': 0,     'mask': 16},
+        {'rank': '7', 'suit': SPADES,   'value': 0,     'mask': 17},
+        {'rank': '8', 'suit': SPADES,   'value': 0,     'mask': 18},
+        {'rank': '9', 'suit': SPADES,   'value': 0,     'mask': 19},
+        {'rank': 'Q', 'suit': SPADES,   'value': 3,     'mask': 20},
+        {'rank': 'K', 'suit': SPADES,   'value': 4,     'mask': 21},
+        {'rank': 'T', 'suit': SPADES,   'value': 10,    'mask': 22},
+        {'rank': 'A', 'suit': SPADES,   'value': 11,    'mask': 23},
+        {'rank': '7', 'suit': CLUBS,    'value': 0,     'mask': 24},
+        {'rank': '8', 'suit': CLUBS,    'value': 0,     'mask': 25},
+        {'rank': '9', 'suit': CLUBS,    'value': 0,     'mask': 26},
+        {'rank': 'Q', 'suit': CLUBS,    'value': 3,     'mask': 27},
+        {'rank': 'K', 'suit': CLUBS,    'value': 4,     'mask': 28},
+        {'rank': 'T', 'suit': CLUBS,    'value': 10,    'mask': 29},
+        {'rank': 'A', 'suit': CLUBS,    'value': 11,    'mask': 30},
+        {'rank': 'J', 'suit': DIAMONDS, 'value': 2,     'mask': 31},
+        {'rank': 'J', 'suit': HEARTS,   'value': 2,     'mask': 32},
+        {'rank': 'J', 'suit': SPADES,   'value': 2,     'mask': 33},
+        {'rank': 'J', 'suit': CLUBS,    'value': 2,     'mask': 34},
+        {'rank': '6', 'suit': CLUBS,    'value': 0,     'mask': 35},
+    ]
